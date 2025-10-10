@@ -1,3 +1,5 @@
+import HostIcon from './components/HostIcon.jsx';
+import BotIcon from './components/BotIcon.jsx';
 // import GameIcon from './components/GameIcon.jsx';
 // import GameForm from './components/GameForm.jsx';
 // import GameMessage from './components/GameMessage.jsx';
@@ -12,7 +14,8 @@ const App = () => {
         {/* Gamechat Header  */}
         <div className="chat-header">
           <div className="header-info">
-            <h2 className="logo-text">Who is Real Human?</h2>
+            <button className="material-symbols-rounded">menu</button>
+            <h2 className="logo-text">Who is Human?</h2>
 
           </div>
         </div>
@@ -20,11 +23,13 @@ const App = () => {
         {/* Gamechat body */}
         <div className="chat-body">
           <div className="message host-message">
+            <HostIcon />
             <p className="message-text">🐖host-message placeholder</p>
           </div>
 
           <div className="message bot-message">
             {/* <GameIcon /> */}
+            <BotIcon />
             <p className="message-text">🤖bot-message placeholder</p>
             </div>
 
@@ -46,9 +51,11 @@ const App = () => {
 
       <div className="sidemenu">
         <div className="newGame">
-          <button className="material-symbols-rounded">menu</button>
+          <p>Add new game  [+] </p>
         </div>
         <div className="sessionList">
+          <p>session-1    ...</p>
+          <p>session-2    ...</p>
           <button className="material-symbols-rounded">delete</button>
         </div>
       </div>
