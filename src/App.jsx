@@ -17,7 +17,6 @@ const App = () => {
         setIsMenuOpen(false); 
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
