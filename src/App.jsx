@@ -19,9 +19,13 @@ const App = () => {
 
         {/* Gamechat body */}
         <div className="chat-body">
+          <div className="message host-message">
+            <p className="message-text">🐖host-message placeholder</p>
+          </div>
+
           <div className="message bot-message">
             {/* <GameIcon /> */}
-            <p className="message-text">🤖bot-message placeholder!</p>
+            <p className="message-text">🤖bot-message placeholder</p>
             </div>
 
           <div className="message user-message">
@@ -38,7 +42,20 @@ const App = () => {
         </div>
 
       </div>
+
+
+      <div className="sidemenu">
+        <div className="newGame">
+          <button className="material-symbols-rounded">menu</button>
+        </div>
+        <div className="sessionList">
+          <button className="material-symbols-rounded">delete</button>
+        </div>
+      </div>
+
     </div>
+
+      
   );
 };
 
