@@ -33,7 +33,7 @@ body {
   border-radius: 15px;
 }
 
-.sidemenu {
+.sideMenu {
   position: absolute;
   left: 0;
   top: 0;
@@ -47,6 +47,10 @@ body {
   border-radius: 15px;
   overflow-y: auto;
 }
+
+  .sideMenu.open {
+  transform: translateX(0);
+  }
 
 .container.menu-open .sidemenu {
   transform: translateX(0);

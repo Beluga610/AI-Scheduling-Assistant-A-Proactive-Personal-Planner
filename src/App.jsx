@@ -7,6 +7,9 @@ import GameMessage from './components/GameMessage.jsx';
 
 const App = () => {
   // ---------- Side Menu------------
+  const [games, setGames] = useState([{ id: "default", title: "New Game", messages: [] }]);
+  const [activeGame, setActiveGame] = useState("default");
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -86,7 +89,7 @@ const App = () => {
     <div className="outer-wrapper">
     <div className={`container ${isMenuOpen ? "menu-open" : ""}`}>
 
-      {/* <SideMenu menuRef={menuRef} /> */}
+      <SideMenu menuRef={menuRef} games={games} setGames={setGames} activeGame={activeGame} setActiveGame={setActiveGame} isMenuOpen={isMenuOpen}/>
 
       <div className="chat-popup">
         {/* Gamechat Header  */}
