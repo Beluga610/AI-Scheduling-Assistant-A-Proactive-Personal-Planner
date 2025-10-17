@@ -1,6 +1,7 @@
-// 正常流程：接收输入 -> 更新当前会话 -> 显示消息 -> 调用AI生成回复 -> 更新当前会话 -> 显示消息
+// Normal process: user input -> update conversation and display message -> call ai to generate response -> update&display
 
-// 假流程
+
+// Dummy process: Simulate one round of speaking using hardcoded data and a timer.
 import { useState } from "react";
 
 const GameForm = ({ triggerNextPhase, isLoading, setIsLoading, addMessage, phase }) => {
@@ -8,8 +9,9 @@ const GameForm = ({ triggerNextPhase, isLoading, setIsLoading, addMessage, phase
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Prevent users from clicking "send" before the host has finished speaking; avoid triggering the action repeatedly
     if (isLoading || !gameText.trim()) return;
-
+    
     setIsLoading(true);
 
     // User's message
@@ -18,7 +20,7 @@ const GameForm = ({ triggerNextPhase, isLoading, setIsLoading, addMessage, phase
 
     setGameText("");
 
-    // Simulate a brief delay
+    // A brief delay to stimulate AI thinking (currently no backend)
     setTimeout(() => {
       triggerNextPhase(null, userInput);
       setIsLoading(false);
