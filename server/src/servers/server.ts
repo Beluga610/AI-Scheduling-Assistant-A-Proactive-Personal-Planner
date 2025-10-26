@@ -1,5 +1,12 @@
 import express from "express";
 import { mountGraphQL } from "./graphql.js";
+import {  cleanupOrchestratorBridges } from "../graphql/resolvers.js";
+
+process.on("SIGTERM", async () => {
+  console.log("Shutting down...");
+  await  cleanupOrchestratorBridges();
+  server.close(() => process.exit(0));
+});
 
 const app = express();
 app.get("/", (_req, res) => {
