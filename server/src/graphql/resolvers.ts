@@ -1,25 +1,18 @@
-/**
- * GraphQL Resolvers with Python Agent Orchestrator Integration
- * 
- * This shows how to modify resolvers.ts to use the Python-based multi-agent system
- * instead of the TypeScript HostAgent
- */
-
 import { engine } from "../engine.js";
-import { createOrchestratorBridge } from "../orchestrator-bridge.js";
+import { orchestrationManager } from "../engine/orchestration.js";
 import { askLLM } from "../ai/provider.js";
-import { PythonOrchestratorBridge } from "../orchestrator-bridge.js";
 
 type VotePair = { voterId: string; targetId: string };
-
-// Keep track of active orchestrator bridges
-const activeBridges = new Map<string, PythonOrchestratorBridge>();
 
 export const resolvers = {
   Query: {
     gameState: (_: unknown, { gameId }: { gameId: string }) => {
       const g = engine.get(gameId);
       return g.publicState();
+    },
+
+    orchestrationStatus: () => {
+      return orchestrationManager.getStatus();
     },
   },
 
@@ -75,81 +68,38 @@ export const resolvers = {
       return g.publicState();
     },
 
-    /**
-     * PYTHON ORCHESTRATOR: Start automated game with multi-agent system
-     * 
-     * This uses the HuggingFace smolagents pattern:
-     * - Manager Agent coordinates game flow
-     * - Individual AI Agents handle discussion
-     * - Distributed task handling and memory management
-     */
+    // ============================================================================
+    // UPDATED: Automated host loop controls using new OrchestrationManager
+    // ============================================================================
     startAuto: async (_: unknown, { gameId }: { gameId: string }) => {
       try {
         const g = engine.get(gameId);
+        
+        // Check if already running
+        if (orchestrationManager.isRunning(gameId)) {
+          console.warn(`[Resolver] Orchestration already running for game ${gameId}`);
+          return true;
+        }
 
-        // Create the orchestrator bridge
-        const bridge = createOrchestratorBridge(gameId, {
-          scriptPath: new URL("../orchestrator_service.py", import.meta.url).pathname,
-          modelId: process.env.GEMINI_MODEL || "Qwen/Qwen2.5-Coder-32B-Instruct",
-          provider: process.env.AGENT_PROVIDER || "together",
-        });
-
-        // Define broadcast callback
-        const onBroadcast = (event: any) => {
-          console.log("[Host event]", event);
-          // TODO: Send to WebSocket clients connected to this game
-          // e.g., broadcastToGameClients(gameId, event)
-        };
-
-        // Start the orchestrator
-        await bridge.start(g, onBroadcast);
-
-        // Store bridge for cleanup later
-        activeBridges.set(gameId, bridge);
-
+        console.log(`[Resolver] Starting automated orchestration for game ${gameId}`);
+        await orchestrationManager.startGame(g, gameId);
+        
         return true;
       } catch (error) {
-        console.error("[Orchestrator] Failed to start:", error);
+        console.error(`[Resolver] Failed to start orchestration:`, error);
         throw error;
       }
     },
 
     stopAuto: async (_: unknown, { gameId }: { gameId: string }) => {
       try {
-        const bridge = activeBridges.get(gameId);
-        if (bridge) {
-          await bridge.stop();
-          activeBridges.delete(gameId);
-        }
+        console.log(`[Resolver] Stopping orchestration for game ${gameId}`);
+        await orchestrationManager.stopGame(gameId);
         return true;
       } catch (error) {
-        console.error("[Orchestrator] Failed to stop:", error);
+        console.error(`[Resolver] Failed to stop orchestration:`, error);
         throw error;
       }
     },
-
-    /**
-     * ALTERNATIVE: Manual orchestration without Python
-     * Use this if you want TypeScript-only agent management
-     */
-    startAutoLegacy: async (_: unknown, { gameId }: { gameId: string }) => {
-      // Import the TypeScript agent if needed
-      // const { HostAgent } = await import("../engine/hostAgent.js");
-      // ... original logic
-      return true;
-    },
   },
 };
-
-/**
- * Export for cleanup on server shutdown
- * Call this in your server's graceful shutdown handler
- */
-export async function cleanupOrchestratorBridges() {
-  const shutdownPromises = Array.from(activeBridges.values()).map((bridge) =>
-    bridge.stop().catch((err) => console.error("Cleanup error:", err))
-  );
-
-  await Promise.all(shutdownPromises);
-  activeBridges.clear();
-}
