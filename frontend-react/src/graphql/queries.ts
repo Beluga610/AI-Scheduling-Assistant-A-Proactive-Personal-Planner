@@ -1,113 +1,66 @@
-// src/graphql/queries.ts
 import { gql } from '@apollo/client';
 
-// 创建游戏
-export const CREATE_GAME = gql`
-  mutation CreateGame($playerName: String!) {
-    createGame(playerName: $playerName) {
-      id
-      phase
-      round
-      players {
+// -----------------
+// 变更 (MUTATIONS)
+// -----------------
+
+/**
+ * 用户登录
+ */
+export const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(input: { email: $email, password: $password }) {
+      token
+      user {
         id
+        email
         name
-        kind
-        isEliminated
-      }
-      messages {
-        id
-        playerName
-        text
-        timestamp
       }
     }
   }
 `;
 
-// 开始游戏
-export const START_GAME = gql`
-  mutation StartGame($gameId: ID!) {
-    startGame(gameId: $gameId) {
+/**
+ * LLM 拆分任务
+ */
+export const SPLIT_TASK_MUTATION = gql`
+  mutation SplitTask($prompt: String!) {
+    splitTask(prompt: $prompt) {
       id
-      phase
-      round
-      messages {
-        id
-        playerName
-        text
-        timestamp
-      }
+      title
+      description
+      dueDate
+      status
     }
   }
 `;
 
-// 发送消息
-export const SEND_MESSAGE = gql`
-  mutation SendMessage($gameId: ID!, $playerId: ID!, $text: String!) {
-    sendMessage(gameId: $gameId, playerId: $playerId, text: $text) {
-      id
-      phase
-      messages {
-        id
-        playerName
-        text
-        timestamp
-      }
-    }
-  }
-`;
+// -----------------
+// 查询 (QUERIES)
+// -----------------
 
-// 查询游戏状态
-export const GET_GAME = gql`
-  query GetGame($id: ID!) {
-    game(id: $id) {
+/**
+ * 获取当前用户信息 (包含任务和日历)
+ */
+export const GET_ME_QUERY = gql`
+  query GetMe {
+    me {
       id
-      phase
-      round
-      winner
-      players {
+      email
+      name
+      tasks {
         id
-        name
-        kind
-        isEliminated
+        title
+        description
+        dueDate
+        status
       }
-      messages {
+      calendarEvents {
         id
-        playerName
-        text
-        timestamp
-      }
-    }
-  }
-`;
-
-// 进入下一阶段
-export const NEXT_PHASE = gql`
-  mutation NextPhase($gameId: ID!) {
-    nextPhase(gameId: $gameId) {
-      id
-      phase
-      round
-    }
-  }
-`;
-
-// 提交投票
-export const SUBMIT_VOTE = gql`
-  mutation SubmitVote($gameId: ID!, $voterId: ID!, $targetId: ID!) {
-    submitVote(gameId: $gameId, voterId: $voterId, targetId: $targetId) {
-      id
-      phase
-      winner
-      players {
-        id
-        name
-        isEliminated
-      }
-      messages {
-        id
-        playerName
-        text
+        title
+        start
+        end
+        allDay
       }
     }
   }
