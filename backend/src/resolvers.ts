@@ -104,7 +104,10 @@ export const resolvers = {
     splitTask: async (parent: any, { prompt }: { prompt: string }, context: Context) => {
       // TODO: 真实实现 - 确保用户已登录
       // if (!context.user) throw new Error('需要登录');
-      const userId = context.user?._id || MOCK_USER_ID;
+      
+      // (修改) 移除 ?. 语法 (Node 10 兼容)
+      const userId = (context.user && context.user._id) ? context.user._id : MOCK_USER_ID;
+      const userEmail = (context.user && context.user.email) ? context.user.email : MOCK_USER_EMAIL;
       
       console.log('splitTask: 收到拆分请求', prompt);
       
@@ -128,7 +131,8 @@ export const resolvers = {
         ...task,
         id: `gen-task-${index}-${Date.now()}`,
         status: 'TODO',
-        owner: { id: userId, email: context.user?.email || MOCK_USER_EMAIL },
+        // (修改) 移除 ?. 语法 (Node 10 兼容)
+        owner: { id: userId, email: userEmail },
       }));
 
       console.log('splitTask: LLM 模拟返回', mockSavedTasks.length, '个任务');
@@ -209,3 +213,4 @@ export const resolvers = {
     }
   }
 };
+

@@ -1,6 +1,7 @@
 import 'dotenv/config'; // 确保在顶部加载环境变量
-import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+// (修改) 导入 apollo-server v2
+import { ApolloServer } from 'apollo-server';
+// (修改) 移除 @apollo/server/standalone
 import { connectDB } from './db';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
@@ -13,27 +14,23 @@ async function startApolloServer() {
   // 1. 连接数据库
   await connectDB();
 
-  // 2. 创建 Apollo Server 实例
-  const server = new ApolloServer<Context>({
+  // 2. 创建 Apollo Server 实例 (v2 语法)
+  const server = new ApolloServer({
     typeDefs,
     resolvers,
-  });
-
-  // 3. 启动服务器并设置上下文
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: PORT },
+    // (修改) context 现在是 v2 构造函数的一部分
     context: async ({ req }) => {
       // TODO: 实现完整的身份验证上下文逻辑
-      // 1. 从请求头中获取 authorization
-      const token = req.headers.authorization?.split(' ')[1] || '';
+      
+      // 1. 从请求头中获取 authorization (Node 10 兼容)
+      const authorizationHeader = req.headers.authorization || '';
+      const token = (authorizationHeader && authorizationHeader.split(' ')[1]) || '';
       
       try {
         // 2. 验证 JWT
         const decoded = verifyJWT(token);
         // 3. (模拟) 从数据库中查找用户
         if (decoded && typeof decoded !== 'string') {
-           // 在真实应用中，你会用 decoded.userId 去数据库查用户
-           // const user = await User.findById(decoded.userId);
            const mockUser = { _id: (decoded as DecodedToken).userId, email: "mock@user.com", name: "Mock User" };
            return { user: mockUser };
         }
@@ -44,6 +41,9 @@ async function startApolloServer() {
       }
     },
   });
+
+  // 3. 启动服务器 (v2 语法)
+  const { url } = await server.listen({ port: PORT });
 
   console.log(`🚀 后端服务器已启动于: ${url}`);
 }
@@ -61,3 +61,4 @@ declare module './types' {
     userId: string;
   }
 }
+
