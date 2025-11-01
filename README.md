@@ -56,9 +56,60 @@
 
 ---
 
-### 🧩 说明
-- **✅** 表示核心功能模块  
-- **✳️ (新增)** 表示你在本次版本中新增或优化的结构  
-- 后端采用 **Node.js + GraphQL (Apollo Server)**  
-- 前端基于 **React + Vite + Apollo Client**  
-- 使用 **Docker Compose** 管理 MongoDB 启动与环境配置  
+如何运行 (开发环境)
+
+先决条件
+
+Node.js (v18+)
+
+npm
+
+Docker (和 Docker Compose)
+
+1. 启动数据库 (MongoDB)
+
+我们使用 Docker Compose 快速启动一个 MongoDB 实例。
+
+docker-compose up -d mongo-db
+
+
+(如果你想停止: docker-compose down)
+
+2. 配置环境变量
+
+复制 .env.example 为 .env，并确保 MONGODB_URI 和 JWT_SECRET 已配置。
+
+cp .env.example .env
+
+
+(打开 .env 文件并添加一个 JWT_SECRET)
+
+3. 安装依赖
+
+在项目根目录运行 npm install。这将会同时安装根目录、backend/ 和 frontend-react/ 的依赖。
+
+npm install
+
+
+4. 启动开发服务器
+
+在项目根目录运行 dev 脚本，它将使用 concurrently 同时启动前端和后端。
+
+npm run dev
+
+
+🚀 后端 (Apollo GQL) 将运行在: http://localhost:4000
+
+🎨 前端 (Vite React) 将运行在: http://localhost:5173 (或 Vite 提示的端口)
+
+调试工作流程
+
+打开 http://localhost:5173 访问前端。
+
+打开 http://localhost:4000/graphql 访问 Apollo GQL 操作台 (Playground)，你可以在这里独立测试后端的 login 和 splitTask 变更。
+
+前端登录 (使用模拟值 user@example.com / 123456)，你将被重定向到 /dashboard。
+
+在仪表盘中，输入任务（例如 "下周完成报告"）并点击 "AI 智能拆分"。
+
+检查浏览器控制台和 Node.js 终端的 console.log，查看模拟的数据流和 TODO 标记。
