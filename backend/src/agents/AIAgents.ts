@@ -2,122 +2,48 @@
 import OpenAI from 'openai';
 
 export interface AIAgentConfig {
-  id: string;
-  name: string;
-  personality: string;
+  title: string;
+  description: string;
+  dueDate: string | null; // LLM 尝试提取的日期
 }
 
-export class AIAgent {
-  private openai: OpenAI;
-  private config: AIAgentConfig;
+export const splitTaskWithLLM = async (prompt: string): Promise<AIAgentConfig[]> => {
+  console.log(`[AIAgents] 正在 (模拟) 调用 LLM 拆分: "${prompt}"`);
+  // TODO: 在这里实现真实的 API 调用
+  // 1. 构造发送给 LLM 的 prompt (例如，包含 JSON schema 指示)
+  // 2. 使用 fetch 或 axios 发送请求
+  // 3. 解析 LLM 返回的 JSON 字符串
+  // 模拟 LLM API 的延迟
+  await new Promise(resolve => setTimeout(resolve, 500));
 
-  constructor(config: AIAgentConfig) {
-    this.config = config;
-    
+  // 模拟 LLM 返回的结构化数据
+  const mockResponse: AIAgentConfig[] = [
+    {
+      title: "任务1: 资料调研",
+      description: "收集关于 'XXX' 主题的背景资料和文献",
+      dueDate: new Date(Date.now() + 1 * 24 * 3600 * 1000).toISOString(), // 模拟明天
+    },
+    {
+      title: "任务2: 撰写初稿",
+      description: "完成报告的第一版草稿",
+      dueDate: new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString(), // 模拟3天后
+    },
+    {
+      title: "任务3: 审阅和修改",
+      description: "复查初稿，修改语法和内容错误",
+      dueDate: new Date(Date.now() + 4 * 24 * 3600 * 1000).toISOString(), // 模拟4天后
+    },
+  ];
+
+  console.log('[AIAgents] LLM (模拟) 拆分完成');
+  return mockResponse;
+};
+
+/*    
     // 使用 DeepSeek API
     this.openai = new OpenAI({
       baseURL: 'https://api.deepseek.com',
       apiKey: process.env.DEEPSEEK_API_KEY,
     });
   }
-
-  /**
-   * 生成对话回复
-   */
-  async speak(context: string): Promise<string> {
-    try {
-      const systemPrompt = `你是 ${this.config.name}。${this.config.personality}
-      
-你在玩"谁是人类"的游戏，目标是假装成人类，不被发现是 AI。
-- 回复要自然、简短（1-2句话）
-- 表现得像真人一样
-- 偶尔可以有错别字或口语化
-- 不要太完美或太正式`;
-
-      const completion = await this.openai.chat.completions.create({
-        model: 'deepseek-chat', // 使用 DeepSeek 模型
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `当前对话:\n${context}\n\n你的回复:` },
-        ],
-        temperature: 0.9,
-        max_tokens: 100,
-      });
-
-      return completion.choices[0]?.message?.content?.trim() || '...';
-    } catch (error) {
-      console.error(`AI Agent ${this.config.name} 出错:`, error);
-      return '嗯...让我想想';
-    }
-  }
-
-  /**
-   * 决定投票给谁
-   */
-  async vote(context: string, players: string[]): Promise<string> {
-    try {
-      const systemPrompt = `你是 ${this.config.name}。分析对话，投票给最可能是 AI 的玩家。`;
-
-      const completion = await this.openai.chat.completions.create({
-        model: 'deepseek-chat', // 使用 DeepSeek 模型
-        messages: [
-          { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: `对话记录:\n${context}\n\n可投票的玩家: ${players.join(', ')}\n\n只回复玩家 ID，不要解释:`,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 20,
-      });
-
-      const voteTarget = completion.choices[0]?.message?.content?.trim() || players[0];
-      
-      // 确保返回的是有效的玩家 ID
-      return players.includes(voteTarget) ? voteTarget : players[0];
-    } catch (error) {
-      console.error(`AI Agent ${this.config.name} 投票出错:`, error);
-      // 随机选择一个玩家
-      return players[Math.floor(Math.random() * players.length)];
-    }
-  }
-
-  /**
-   * 测试 DeepSeek API 连接
-   */
-  static async testConnection(): Promise<boolean> {
-    try {
-      console.log('🧪 测试 DeepSeek API 连接...');
-      
-      const openai = new OpenAI({
-        baseURL: 'https://api.deepseek.com',
-        apiKey: process.env.DEEPSEEK_API_KEY,
-      });
-
-      const completion = await openai.chat.completions.create({
-        model: 'deepseek-chat',
-        messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
-        max_tokens: 50,
-      });
-
-      const response = completion.choices[0]?.message?.content;
-      console.log('✅ DeepSeek API 连接成功！');
-      console.log('📝 测试响应:', response);
-      return true;
-    } catch (error: any) {
-      console.error('❌ DeepSeek API 连接失败:', error.message);
-      if (error.message.includes('API key')) {
-        console.error('💡 提示: 请检查 DEEPSEEK_API_KEY 环境变量');
-      }
-      return false;
-    }
-  }
-
-  getId(): string {
-    return this.config.id;
-  }
-
-  getName(): string {
-    return this.config.name;
-  }
-}
+*/

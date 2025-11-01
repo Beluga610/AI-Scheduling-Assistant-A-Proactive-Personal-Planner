@@ -1,95 +1,63 @@
-// backend/src/index.ts
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-// 获取文件路径
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// 加载 .env 文件（在根目录）
-const envPath = join(__dirname, '..', '..', '.env');
-console.log('📂 加载 .env 文件:', envPath);
-const result = dotenv.config({ path: envPath });
-
-if (result.error) {
-  console.error('❌ 加载 .env 失败:', result.error);
-} else {
-  console.log('✅ .env 文件加载成功');
-}
-
-// 检查环境变量
-console.log('🔑 DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY ? '✅ 已设置' : '❌ 未设置');
-console.log('🔧 PORT:', process.env.PORT || '4000 (默认)');
-
-if (!process.env.DEEPSEEK_API_KEY) {
-  console.error('\n❌ 错误: DEEPSEEK_API_KEY 未设置');
-  console.error('💡 请确认 .env 文件存在:', envPath);
-  process.exit(1);
-}
-
-// 导入其他模块
+import 'dotenv/config'; // 确保在顶部加载环境变量
 import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import express from 'express';
-import http from 'http';
-import cors from 'cors';
-import { typeDefs } from './schema.js';
-import { resolvers } from './resolvers.js';
-import { GameOrchestrator } from './agents/GameOrchestrator.js';
-import { AIAgent } from './agents/AIAgents.js';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { connectDB } from './db';
+import { typeDefs } from './schema';
+import { resolvers } from './resolvers';
+import { Context, DecodedToken } from './types'; // 我们将为上下文创建一个类型
+import { verifyJWT } from './utils/auth';
 
-const PORT = parseInt(process.env.PORT || '4000', 10);
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
 
-async function startServer() {
-  const app = express();
-  const httpServer = http.createServer(app);
+async function startApolloServer() {
+  // 1. 连接数据库
+  await connectDB();
 
-  // 测试 DeepSeek API 连接
-  console.log('\n' + '='.repeat(60));
-  console.log('🧪 测试 DeepSeek API 连接...');
-  await AIAgent.testConnection();
-  console.log('='.repeat(60) + '\n');
-
-  // 初始化游戏编排器
-  const gameOrchestrator = new GameOrchestrator();
-
-  // 创建 Apollo Server
-  const server = new ApolloServer({
+  // 2. 创建 Apollo Server 实例
+  const server = new ApolloServer<Context>({
     typeDefs,
     resolvers,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
-  await server.start();
-
-  // 中间件
-  app.use(
-    '/graphql',
-    cors<cors.CorsRequest>({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    }),
-    express.json(),
-    expressMiddleware(server, {
-      context: async () => ({
-        gameOrchestrator,
-      }),
-    })
-  );
-
-  // 健康检查
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  // 3. 启动服务器并设置上下文
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: PORT },
+    context: async ({ req }) => {
+      // TODO: 实现完整的身份验证上下文逻辑
+      // 1. 从请求头中获取 authorization
+      const token = req.headers.authorization?.split(' ')[1] || '';
+      
+      try {
+        // 2. 验证 JWT
+        const decoded = verifyJWT(token);
+        // 3. (模拟) 从数据库中查找用户
+        if (decoded && typeof decoded !== 'string') {
+           // 在真实应用中，你会用 decoded.userId 去数据库查用户
+           // const user = await User.findById(decoded.userId);
+           const mockUser = { _id: (decoded as DecodedToken).userId, email: "mock@user.com", name: "Mock User" };
+           return { user: mockUser };
+        }
+        return { user: null };
+      } catch (error) {
+        // console.error('Context auth error:', error.message);
+        return { user: null };
+      }
+    },
   });
 
-  await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
-  
-  console.log(`\n🚀 Server ready at http://localhost:${PORT}/graphql`);
-  console.log(`📊 GraphQL Playground: http://localhost:${PORT}/graphql\n`);
+  console.log(`🚀 后端服务器已启动于: ${url}`);
 }
 
-startServer().catch((error) => {
-  console.error('\n❌ Failed to start server:', error);
-  process.exit(1);
+startApolloServer().catch(error => {
+  console.error('启动服务器失败:', error);
 });
+
+// (新增) 定义上下文类型
+declare module './types' {
+  interface Context {
+    user: { _id: string; email: string; name: string } | null;
+  }
+  interface DecodedToken {
+    userId: string;
+  }
+}
