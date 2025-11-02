@@ -2,7 +2,7 @@ import React from "react";
 import { useQuery } from "@apollo/client";
 import { GET_EVENTS, GET_TASKS } from "../graphql/queries";
 
-export default function CalendarView() {
+export default function CalendarView(props) {
   const { data: eventsData, loading: eventsLoading } = useQuery(GET_EVENTS);
   const { data: tasksData, loading: tasksLoading } = useQuery(GET_TASKS);
 

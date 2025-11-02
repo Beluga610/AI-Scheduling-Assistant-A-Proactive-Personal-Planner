@@ -36,3 +36,37 @@ export const CREATE_TASK = gql`
     }
   }
 `;
+export const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user {
+        id
+        email
+        name
+      }
+    }
+  }
+`;
+
+export const GET_ME_QUERY = gql`
+  query GetMe {
+    me {
+      id
+      name
+      email
+      tasks {
+        id
+        title
+        status
+        dueDate
+      }
+      calendarEvents {
+        id
+        title
+        start
+        end
+      }
+    }
+  }
+`;

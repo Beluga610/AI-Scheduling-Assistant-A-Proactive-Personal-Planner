@@ -1,6 +1,6 @@
 import React from 'react';
-import { TaskInput } from '../components/TaskInput';
-import { CalendarView } from '../components/CalendarView';
+import TaskInput from '../components/TaskInput';
+import CalendarView from '../components/CalendarView';
 import { useQuery } from '@apollo/client';
 import { GET_ME_QUERY } from '../graphql/queries';
 
@@ -52,7 +52,7 @@ export const DashboardPage: React.FC = () => {
           <p>暂无任务，快去拆分一个吧！</p>
         ) : (
           <ul style={{ background: '#2f2f2f', padding: '1rem', borderRadius: '8px' }}>
-            {tasks.map((task: any)T => (
+            {tasks.map((task: any) => (
               <li key={task.id}>{task.title} ({task.status})</li>
             ))}
           </ul>

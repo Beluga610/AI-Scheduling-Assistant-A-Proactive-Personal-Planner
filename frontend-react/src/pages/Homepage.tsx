@@ -5,19 +5,25 @@ import CalendarView from "../components/CalendarView";
 import { useQuery } from "@apollo/client";
 import { PING } from "../graphql/queries";
 
-export default function HomePage() {
+export const HomePage: React.FC = () => {
   const { data, loading, error } = useQuery(PING);
 
   return (
     <div className="app">
       <div className="header">
         <h1>LLM → Calendar Demo</h1>
-        <div>{loading ? "checking server..." : data?.ping}</div>
+        <div>
+          {loading
+            ? "checking server..."
+            : error
+            ? `Error: ${error.message}`
+            : data?.ping}
+        </div>
       </div>
 
       <Navbar />
 
-      <div style={{display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12}}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12 }}>
         <div>
           <div className="card">
             <h3>Create Task</h3>
@@ -34,4 +40,4 @@ export default function HomePage() {
       </div>
     </div>
   );
-}
+};

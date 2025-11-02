@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { CREATE_TASK, GET_TASKS } from "../graphql/queries";
 
-export default function TaskInput() {
+export default function TaskInput(){
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
