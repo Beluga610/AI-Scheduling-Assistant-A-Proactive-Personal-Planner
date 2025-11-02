@@ -45,38 +45,38 @@ export const resolvers: IResolvers = {
       return { id: "t-new", title: input.title, description: input.description };
     },
 
-    // ÓÃ»§µÇÂ¼
+    // ï¿½Ã»ï¿½ï¿½ï¿½Â¼
     login: async (parent: any, { input }: { input: any }) => {
-      // TODO: ÕæÊµÊµÏÖ - ²éÕÒÓÃ»§, ÑéÖ¤ÃÜÂë, Éú³ÉJWT
+      // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½, ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½JWT
       // const user = await User.findOne({ email: input.email });
-      // if (!user) throw new Error('ÓÃ»§²»´æÔÚ');
+      // if (!user) throw new Error('ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
       // const isValid = await comparePassword(input.password, user.password);
-      // if (!isValid) throw new Error('ÃÜÂë´íÎó');
+      // if (!isValid) throw new Error('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
       // const token = createJWT(user.id);
       
-      console.log('login: Ä£ÄâµÇÂ¼', input.email);
+      console.log('login: Ä£ï¿½ï¿½ï¿½Â¼', input.email);
       const mockUser = {
         id: MOCK_USER_ID,
         email: input.email,
-        name: 'Ä£ÄâµÇÂ¼ÓÃ»§',
+        name: 'Ä£ï¿½ï¿½ï¿½Â¼ï¿½Ã»ï¿½',
       };
-      const mockToken = createJWT(mockUser.id); // Ê¹ÓÃÄ£Äâº¯Êı
+      const mockToken = createJWT(mockUser.id); // Ê¹ï¿½ï¿½Ä£ï¿½âº¯ï¿½ï¿½
       
       return { token: mockToken, user: mockUser };
     },
 
-    // LLM ²ğ·ÖÈÎÎñ
+    // LLM ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     splitTask: async (parent: any, { prompt }: { prompt: string }, context: Context) => {
-      // TODO: ÕæÊµÊµÏÖ - È·±£ÓÃ»§ÒÑµÇÂ¼
-      // if (!context.user) throw new Error('ĞèÒªµÇÂ¼');
+      // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - È·ï¿½ï¿½ï¿½Ã»ï¿½ï¿½Ñµï¿½Â¼
+      // if (!context.user) throw new Error('ï¿½ï¿½Òªï¿½ï¿½Â¼');
       const userId = context.user?._id || MOCK_USER_ID;
       
-      console.log('splitTask: ÊÕµ½²ğ·ÖÇëÇó', prompt);
+      console.log('splitTask: ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', prompt);
       
-      // 1. µ÷ÓÃ AI Agent
+      // 1. ï¿½ï¿½ï¿½ï¿½ AI Agent
       const tasksFromLLM = await splitTaskWithLLM(prompt);
       
-      // 2. TODO: ÕæÊµÊµÏÖ - ½«ÈÎÎñ±£´æµ½Êı¾İ¿â
+      // 2. TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ñ±£´æµ½ï¿½ï¿½ï¿½İ¿ï¿½
       // const savedTasks = await Promise.all(
       //   tasksFromLLM.map(taskData => {
       //     const task = new Task({ 
@@ -88,7 +88,7 @@ export const resolvers: IResolvers = {
       //   })
       // );
       
-      // 3. ·µ»ØÄ£ÄâµÄ¡¢ÒÑ±£´æµÄÈÎÎñ£¨Ìí¼ÓIDºÍowner£©
+      // 3. ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Ä¡ï¿½ï¿½Ñ±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ownerï¿½ï¿½
       const mockSavedTasks = tasksFromLLM.map((task, index) => ({
         ...task,
         id: `gen-task-${index}-${Date.now()}`,
@@ -96,41 +96,41 @@ export const resolvers: IResolvers = {
         owner: { id: userId, email: context.user?.email || MOCK_USER_EMAIL },
       }));
 
-      console.log('splitTask: LLM Ä£Äâ·µ»Ø', mockSavedTasks.length, '¸öÈÎÎñ');
+      console.log('splitTask: LLM Ä£ï¿½â·µï¿½ï¿½', mockSavedTasks.length, 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
       return mockSavedTasks;
     },
 
-    // Í¬²½ÈÎÎñµ½ÈÕÀú
+    // Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     syncTaskToCalendar: async (parent: any, { taskId }: { taskId: string }, context: Context) => {
-        // TODO: ÕæÊµÊµÏÖ - ¼ì²éÈ¨ÏŞ
-        // if (!context.user) throw new Error('ĞèÒªµÇÂ¼');
+        // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½ï¿½È¨ï¿½ï¿½
+        // if (!context.user) throw new Error('ï¿½ï¿½Òªï¿½ï¿½Â¼');
 
-        // 1. TODO: ´ÓÊı¾İ¿â²éÕÒÈÎÎñ
+        // 1. TODO: ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         // const task = await Task.findById(taskId);
-        // if (!task) throw new Error('ÈÎÎñ²»´æÔÚ');
+        // if (!task) throw new Error('ï¿½ï¿½ï¿½ñ²»´ï¿½ï¿½ï¿½');
         const mockTask = {
           id: taskId,
-          title: 'ÒªÍ¬²½µÄÈÎÎñ',
-          description: 'ÈÎÎñÃèÊö',
+          title: 'ÒªÍ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
+          description: 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½',
           dueDate: new Date(Date.now() + 24 * 3600 * 1000).toISOString()
         };
         
-        // 2. TODO: µ÷ÓÃÈÕÀú·şÎñ (ÀıÈç Google Calendar)
+        // 2. TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ Google Calendar)
         // const eventData = await createGoogleCalendarEvent(mockTask);
 
-        // 3. TODO: ½«´´½¨µÄÊÂ¼ş±£´æµ½ÎÒÃÇµÄÊı¾İ¿â
+        // 3. TODO: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½æµ½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½İ¿ï¿½
         // const calendarEvent = new CalendarEvent({
         //   ...eventData,
         //   sourceTask: task.id
         // });
         // await calendarEvent.save();
         
-        console.log('syncTaskToCalendar: Ä£ÄâÍ¬²½ÈÎÎñ', taskId);
+        console.log('syncTaskToCalendar: Ä£ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½', taskId);
         const mockEvent = {
             id: `event-from-${taskId}`,
             title: mockTask.title,
             start: mockTask.dueDate,
-            end: mockTask.dueDate, // ¼ÙÉèÊÇÈ«ÌìÊÂ¼ş»ò1Ğ¡Ê±
+            end: mockTask.dueDate, // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½1Ğ¡Ê±
             allDay: true,
             sourceTask: mockTask
         };
@@ -140,37 +140,37 @@ export const resolvers: IResolvers = {
   },
 
   // -----------------
-  // ¹ØÏµ½âÎö (Resolvers for relations)
+  // ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ (Resolvers for relations)
   // -----------------
   
-  // TODO: Îª Task.owner, User.tasks µÈÊµÏÖÕæÊµµÄ¹ØÏµ½âÎö
-  // (ÕâĞ©ÔÚ Mongoose ÖĞ¿ÉÒÔÍ¨¹ı .populate() ×Ô¶¯´¦Àí£¬
-  //  µ«ÔÚ GraphQL ½âÎöÆ÷ÖĞÏÔÊ½¶¨Òå¸üÇåÎú)
+  // TODO: Îª Task.owner, User.tasks ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½Êµï¿½Ä¹ï¿½Ïµï¿½ï¿½ï¿½ï¿½
+  // (ï¿½ï¿½Ğ©ï¿½ï¿½ Mongoose ï¿½Ğ¿ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ .populate() ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  //  ï¿½ï¿½ï¿½ï¿½ GraphQL ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
   
   Task: {
     owner: (parent: any, args: any, context: Context) => {
-      // parent ÊÇ Task ¶ÔÏó
-      // TODO: ÕæÊµÊµÏÖ - ²éÑ¯ Task µÄ owner
+      // parent ï¿½ï¿½ Task ï¿½ï¿½ï¿½ï¿½
+      // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½Ñ¯ Task ï¿½ï¿½ owner
       // return User.findById(parent.owner);
-      console.log('Task.owner: ½âÎö owner', parent.owner.id);
-      return parent.owner; // Ä£ÄâÊı¾İÖĞÒÑ°üº¬ owner
+      console.log('Task.owner: ï¿½ï¿½ï¿½ï¿½ owner', parent.owner.id);
+      return parent.owner; // Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½ owner
     }
   },
 
   User: {
     tasks: (parent: any, args: any, context: Context) => {
-      // parent ÊÇ User ¶ÔÏó
-      // TODO: ÕæÊµÊµÏÖ - ²éÑ¯¸Ã User µÄËùÓĞ Task
+      // parent ï¿½ï¿½ User ï¿½ï¿½ï¿½ï¿½
+      // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½Ñ¯ï¿½ï¿½ User ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Task
       // return Task.find({ owner: parent.id });
-      console.log('User.tasks: ½âÎöÓÃ»§', parent.id, 'µÄÈÎÎñ');
-      return []; // µ÷ÊÔ£ºÔİÊ±·µ»Ø¿Õ£¬±ÜÃâÎŞÏŞÑ­»·
+      console.log('User.tasks: ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½', parent.id, 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
+      return []; // ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ø¿Õ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½
     },
     calendarEvents: (parent: any, args: any, context: Context) => {
-      // parent ÊÇ User ¶ÔÏó
-      // TODO: ÕæÊµÊµÏÖ - ²éÑ¯¸Ã User µÄËùÓĞ CalendarEvent
+      // parent ï¿½ï¿½ User ï¿½ï¿½ï¿½ï¿½
+      // TODO: ï¿½ï¿½ÊµÊµï¿½ï¿½ - ï¿½ï¿½Ñ¯ï¿½ï¿½ User ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CalendarEvent
       // return CalendarEvent.find({ ... });
-      console.log('User.calendarEvents: ½âÎöÓÃ»§', parent.id, 'µÄÈÕÀú');
-      return []; // µ÷ÊÔ£ºÔİÊ±·µ»Ø¿Õ
+      console.log('User.calendarEvents: ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½', parent.id, 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½');
+      return []; // ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ø¿ï¿½
     }
   }
 };

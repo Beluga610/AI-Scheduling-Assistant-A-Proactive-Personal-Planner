@@ -1,7 +1,8 @@
+// src/components/Navbar.tsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-export const Navbar: React.FC = () => {
+const Navbar: React.FC = () => {  // 移除 const 命名
   const navigate = useNavigate();
   // TODO: 真实实现 - 检查 token
   const isAuthenticated = !!localStorage.getItem('authToken'); // 模拟
@@ -33,3 +34,5 @@ export const Navbar: React.FC = () => {
     </nav>
   );
 };
+
+export default Navbar; 

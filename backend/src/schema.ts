@@ -1,3 +1,4 @@
+// src/schema.ts
 import { gql } from 'graphql-tag';
 
 // 定义 GraphQL Schema
@@ -70,6 +71,9 @@ export const typeDefs = gql`
   # -----------------
 
   type Query {
+    "健康检查端点"
+    ping: String
+    
     "获取当前登录的用户信息"
     me: User
     
@@ -78,6 +82,15 @@ export const typeDefs = gql`
     
     "获取特定用户的所有日历事件"
     userCalendarEvents(userId: ID!): [CalendarEvent]
+
+    "获取用户列表"
+    users: [User]
+
+    "获取任务列表"
+    tasks(ownerId: ID): [Task]
+
+    "获取日历事件列表"
+    events(ownerId: ID): [CalendarEvent]
   }
 
   # -----------------
