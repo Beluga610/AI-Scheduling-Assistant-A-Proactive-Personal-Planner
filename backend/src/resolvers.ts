@@ -4,7 +4,7 @@ import { CalendarEvent } from './models/CalendarEvent';
 import { hashPassword, comparePassword, createJWT } from './utils/auth';
 import { splitTaskWithLLM } from './agents/AIAgents';
 import { createGoogleCalendarEvent } from './services/googleCalendar';
-import { Context }_ from './types'; // 引入上下文类型
+import { Context } from './types'; // 引入上下文类型
 
 // 模拟用户ID
 const MOCK_USER_ID = 'mock-user-id-123';

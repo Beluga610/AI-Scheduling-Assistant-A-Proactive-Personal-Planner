@@ -7,7 +7,8 @@ import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
 import { Context, DecodedToken } from './types'; // 我们将为上下文创建一个类型
 import { verifyJWT } from './utils/auth';
-
+import dotenv from 'dotenv';
+dotenv.config();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
 
 async function startApolloServer() {
