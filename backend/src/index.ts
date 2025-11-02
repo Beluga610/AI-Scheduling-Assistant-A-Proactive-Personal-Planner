@@ -1,10 +1,10 @@
-import 'dotenv/config'; // È·±£ÔÚ¶¥²¿¼ÓÔØ»·¾³±äÁ¿
+import 'dotenv/config'; 
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { connectDB } from './db';
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
-import { Context, DecodedToken } from './types'; // ÎÒÃÇ½«ÎªÉÏÏÂÎÄ´´½¨Ò»¸öÀàĞÍ
+import { Context, DecodedToken } from './types';
 import { verifyJWT } from './utils/auth';
 
 dotenv.config();
@@ -16,27 +16,20 @@ async function start() {
   await mongoose.connect(MONGO);
   console.log("MongoDB connected");
 
-  // 2. ´´½¨ Apollo Server ÊµÀı
   const server = new ApolloServer<Context>({
     typeDefs,
     resolvers,
   });
 
-  // 3. Æô¶¯·şÎñÆ÷²¢ÉèÖÃÉÏÏÂÎÄ
   const { url } = await startStandaloneServer(server, {
     listen: { port: PORT },
     context: async ({ req }) => {
-      // TODO: ÊµÏÖÍêÕûµÄÉí·İÑéÖ¤ÉÏÏÂÎÄÂß¼­
-      // 1. ´ÓÇëÇóÍ·ÖĞ»ñÈ¡ authorization
+
       const token = req.headers.authorization?.split(' ')[1] || '';
       
       try {
-        // 2. ÑéÖ¤ JWT
         const decoded = verifyJWT(token);
-        // 3. (Ä£Äâ) ´ÓÊı¾İ¿âÖĞ²éÕÒÓÃ»§
         if (decoded && typeof decoded !== 'string') {
-           // ÔÚÕæÊµÓ¦ÓÃÖĞ£¬Äã»áÓÃ decoded.userId È¥Êı¾İ¿â²éÓÃ»§
-           // const user = await User.findById(decoded.userId);
            const mockUser = { _id: (decoded as DecodedToken).userId, email: "mock@user.com", name: "Mock User" };
            return { user: mockUser };
         }
@@ -48,7 +41,7 @@ async function start() {
     },
   });
 
-  console.log(`?? ºó¶Ë·şÎñÆ÷ÒÑÆô¶¯ÓÚ: ${url}`);
+  console.log(`?? ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ${url}`);
 }
 
   const server = new ApolloServer({
@@ -58,7 +51,6 @@ async function start() {
   await server.start();
   server.applyMiddleware({ app, path: "/graphql", cors: false });
 
-// (ĞÂÔö) ¶¨ÒåÉÏÏÂÎÄÀàĞÍ
 declare module './types' {
   interface Context {
     user: { _id: string; email: string; name: string } | null;
