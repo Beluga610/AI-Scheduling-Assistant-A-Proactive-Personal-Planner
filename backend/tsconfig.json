@@ -1,20 +1,24 @@
 {
   "compilerOptions": {
-    /* --- 关键设置 --- */
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
     "esModuleInterop": true,
-
-    /* --- 推荐设置 --- */
-    "target": "ES2018",      /* 编译成一个你的旧 Node 版本能懂的 JS 版本 */
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "allowSyntheticDefaultImports": true,
     "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "include": [
-    "src/**/*",
-    "test-deepseek.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }
