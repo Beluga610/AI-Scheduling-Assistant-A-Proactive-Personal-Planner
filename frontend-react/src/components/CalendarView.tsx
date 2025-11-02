@@ -1,46 +1,40 @@
-import React from 'react';
+import React from "react";
+import { useQuery } from "@apollo/client";
+import { GET_EVENTS, GET_TASKS } from "../graphql/queries";
 
-// 模拟的日历事件类型
-interface MockEvent {
-  id: string;
-  title: string;
-  start: string;
-  end: string;
-}
+export default function CalendarView() {
+  const { data: eventsData, loading: eventsLoading } = useQuery(GET_EVENTS);
+  const { data: tasksData, loading: tasksLoading } = useQuery(GET_TASKS);
 
-interface CalendarViewProps {
-  events: MockEvent[];
-}
+  if (eventsLoading || tasksLoading) return <div>Loading...</div>;
 
-/**
- * (模拟) 日历视图组件
- */
-export const CalendarView: React.FC<CalendarViewProps> = ({ events }) => {
-
-  // TODO: 真实实现
-  // 1. 集成一个日历库 (例如 'react-big-calendar', 'fullcalendar')
-  // 2. 将传入的 events 格式化为日历库所需的格式
-  // 3. 渲染日历
+  const events = eventsData?.events ?? [];
+  const tasks = tasksData?.tasks ?? [];
 
   return (
-    <div style={{ padding: '1rem', backgroundColor: '#2f2f2f', borderRadius: '8px', marginTop: '1rem' }}>
-      <h3>日历视图 (模拟)</h3>
-      {events.length === 0 ? (
-        <p>暂无日历事件</p>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {events.map(event => (
-            <li key={event.id} style={{ marginBottom: '0.5rem', background: '#3f3f3f', padding: '0.5rem' }}>
-              <strong>{event.title}</strong>
-              <br />
-              <small>
-                {new Date(event.start).toLocaleString()} - {new Date(event.end).toLocaleString()}
-              </small>
-            </li>
+    <div>
+      <h4>Events</h4>
+      {events.length === 0 ? <div>No events yet.</div> : (
+        <ul>
+          {events.map((e: any) => (
+            <li key={e.id}>{e.title} — {new Date(e.start).toLocaleString()}</li>
           ))}
         </ul>
       )}
-      {/* TODO: 在这里放置真实的日历组件 */}
+
+      <h4>Tasks</h4>
+      {tasks.length === 0 ? <div>No tasks yet.</div> : (
+        <ul>
+          {tasks.map((t: any) => (
+            <li key={t.id}>{t.title}</li>
+          ))}
+        </ul>
+      )}
+      <div style={{marginTop:12}}>
+        <button onClick={() => { /* TODO: call splitTaskToEvents mutation for a selected task */ }}>
+          Split a task into events (TODO)
+        </button>
+      </div>
     </div>
   );
-};
+}

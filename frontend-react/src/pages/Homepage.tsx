@@ -1,16 +1,37 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React from "react";
+import Navbar from "../components/Navbar";
+import TaskInput from "../components/TaskInput";
+import CalendarView from "../components/CalendarView";
+import { useQuery } from "@apollo/client";
+import { PING } from "../graphql/queries";
 
-export const HomePage: React.FC = () => {
+export default function HomePage() {
+  const { data, loading, error } = useQuery(PING);
+
   return (
-    <div>
-      <h1>欢迎使用 LLM 任务日历助手</h1>
-      <p>这是一个 MERN + GraphQL 项目，用于演示如何使用 AI 拆分复杂任务并将其同步到您的日历。</p>
-      <Link to="/dashboard">
-        <button style={{ padding: '0.75rem 1.5rem', fontSize: '1rem' }}>
-          前往仪表盘
-        </button>
-      </Link>
+    <div className="app">
+      <div className="header">
+        <h1>LLM → Calendar Demo</h1>
+        <div>{loading ? "checking server..." : data?.ping}</div>
+      </div>
+
+      <Navbar />
+
+      <div style={{display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12}}>
+        <div>
+          <div className="card">
+            <h3>Create Task</h3>
+            <TaskInput />
+          </div>
+        </div>
+
+        <div>
+          <div className="card">
+            <h3>Calendar</h3>
+            <CalendarView />
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
+}

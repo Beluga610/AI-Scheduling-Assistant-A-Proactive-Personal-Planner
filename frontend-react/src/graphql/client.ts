@@ -1,27 +1,13 @@
-// src/graphql/client.ts
-import { ApolloClient, InMemoryCache, createHttpLink, ApolloLink } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
+import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 
 const httpLink = new HttpLink({
-  uri: 'http://localhost:4000/graphql',
+  uri: "http://localhost:4000/graphql",
+  credentials: "same-origin"
 });
 
-const authLink = setContext((_, { headers }) => {
-  // 从 localStorage 获取认证 token
-  const token = localStorage.getItem('authToken');
-  
-  console.log(`[ApolloClient] 正在设置 Auth Header (Token: ${token ? '...' : 'null'})`);
-  
-  // 返回 headers
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  };
+const client = new ApolloClient({
+  link: httpLink,
+  cache: new InMemoryCache()
 });
 
-export const client = new ApolloClient({
-  link: ApolloLink.from([authLink, httpLink]),
-  cache: new InMemoryCache(),
-});
+export default client;

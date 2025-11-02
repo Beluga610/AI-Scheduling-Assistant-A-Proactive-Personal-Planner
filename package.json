@@ -1,18 +1,13 @@
 {
   "name": "llm-calendar-monorepo",
-  "version": "1.0.0",
-  "description": "项目根目录",
   "private": true,
   "scripts": {
-    "postinstall": "npm install --prefix backend && npm install --prefix frontend-react",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend-react",
-    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\""
+    "dev": "concurrently \"npm:dev-backend\" \"npm:dev-frontend\"",
+    "dev-backend": "npm --prefix backend run dev",
+    "dev-frontend": "npm --prefix frontend-react run dev",
+    "build": "npm --prefix frontend-react run build && npm --prefix backend run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^7.0.0"
   }
 }
