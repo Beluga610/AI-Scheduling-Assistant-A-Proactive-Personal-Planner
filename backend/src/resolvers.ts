@@ -10,13 +10,14 @@ export const resolvers: IResolvers = {
       return "pong"; // simple health check
     },
     users: async () => {
-      // TODO: implement real DB fetch
-      // returning mock user(s) to allow frontend testing
-      const mock = await User.find().limit(10).lean().exec().catch(() => null);
-      if (mock && mock.length) return mock;
-      return [
-        { id: "u1", name: "Alice", email: "alice@example.com" }
-      ];
+      try {
+        const users = await User.find().limit(10).lean().exec();
+        if (users && users.length > 0) return users;
+        return [{ _id: "u1", name: "Alice", email: "alice@example.com" }];
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+        return [{ _id: "u1", name: "Alice", email: "alice@example.com" }];
+      }
     },
     tasks: async (_parent, { ownerId }) => {
       // TODO: implement proper filter by ownerId

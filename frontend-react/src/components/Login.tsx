@@ -1,69 +1,48 @@
-import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
-import { LOGIN_MUTATION } from '../graphql/queries';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useLazyQuery } from "@apollo/client";
+import { GET_USERS } from "../graphql/queries";
 
-/**
- * 登录表单组件
- */
-export const Login: React.FC = () => {
-  const [email, setEmail] = useState('user@example.com'); // 模拟默认值
-  const [password, setPassword] = useState('123456'); // 模拟默认值
-  const navigate = useNavigate();
+interface UserOption {
+  _id: string;
+  name: string;
+  email: string;
+}
 
-  const [login, { loading, error }] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data) => {
-      // 2. TODO: 真实实现 - 登录成功
-      console.log('Login: 登录成功', data.login.user.email);
-      // 2a. 存储 token
-      localStorage.setItem('authToken', data.login.token);
-      // 2b. 重定向到仪表盘
-      // 强制刷新页面以确保 Apollo Client (client.ts) 重置 authLink
-      window.location.href = '/dashboard'; 
-      // navigate('/dashboard'); // 使用 navigate 可能不会立即更新 Apollo 的 Header
-    },
-    onError: (err) => {
-      console.error('Login: 登录失败', err);
+export default function Login() {
+  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [users, setUsers] = useState<UserOption[]>([]);
+
+  const [getUsers, { data }] = useLazyQuery(GET_USERS);
+
+  useEffect(() => {
+    getUsers();
+  }, []);
+
+  useEffect(() => {
+    if (data?.users) {
+      setUsers(data.users);
+      setSelectedUser(data.users[0]?._id || "");
     }
-  });
+  }, [data]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
-
-    console.log('Login: 提交登录', email);
-    
-    // 1. TODO: 真实实现 - 调用登录 Mutation
-    login({ variables: { email, password } });
+  const handleLogin = () => {
+    if (!selectedUser) return;
+    // 直接保存用户 id 到前端状态（或 context）
+    localStorage.setItem("currentUserId", selectedUser);
+    window.location.href = "/dashboard";
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>登录</h2>
-      <div>
-        <label htmlFor="email">邮箱</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="password">密码</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit" disabled={loading}>
-        {loading ? '登录中...' : '登录'}
-      </button>
-      {error && <p className="error-message">登录失败: {error.message}</p>}
-    </form>
+    <div>
+      <h2>选择用户登录</h2>
+      <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)}>
+        {users.map(u => (
+          <option key={u._id} value={u._id}>
+            {u.name} ({u.email})
+          </option>
+        ))}
+      </select>
+      <button onClick={handleLogin}>登录</button>
+    </div>
   );
-};
+}

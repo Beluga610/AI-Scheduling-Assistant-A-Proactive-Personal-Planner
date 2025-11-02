@@ -27,6 +27,16 @@ export const GET_EVENTS = gql`
   }
 `;
 
+export const GET_USERS = gql`
+  query GetUsers {
+    users {
+      _id
+      name
+      email
+    }
+  }
+`;
+
 export const CREATE_TASK = gql`
   mutation CreateTask($input: CreateTaskInput!) {
     createTask(input: $input) {
