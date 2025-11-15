@@ -20,27 +20,26 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     try {
       const { data } = await login({
         variables: {
           input: {
             email,
-            password: "FAKE_PASSWORD", // 后端会忽略
+            name,
           },
         },
       });
 
-      if (data?.login?.token) {
-        // 保存 token & user info
-        localStorage.setItem("authToken", data.login.token);
-        localStorage.setItem("currentUser", JSON.stringify(data.login.user));
+      const token = data.login.token;
 
-        navigate("/");
-      }
-    } catch (err: any) {
-      setErrorMessage("登录失败，请检查用户名和邮箱是否正确。");
-      console.error(err);
+      // 保存 token
+      localStorage.setItem("token", token);
+
+      navigate("/dashboard");
+    } catch (err) {
+      setErrorMessage("登录失败，请检查用户名和邮箱是否匹配。");
     }
   };
 

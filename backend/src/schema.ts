@@ -55,10 +55,10 @@ export const typeDefs = gql`
     name: String
   }
 
-  input LoginInput {
-    email: String!
-    password: String!
-  }
+input LoginInput {
+  email: String!
+  name: String
+}
   
   input CreateTaskInput {
     title: String!

@@ -44,20 +44,29 @@ async function start() {
   });
 
   const { url } = await startStandaloneServer(server, {
-    listen: { port: Number(PORT) },
+    listen: { port: Number(PORT), host: '0.0.0.0' },
     context: async ({ req }) => {
       const token = req.headers.authorization?.split(' ')[1] || '';
+      console.log("[Context] Received token:", token ? "Yes" : "No"); // 日志4
       
       try {
         const decoded = verifyToken(token);
-        if (decoded && typeof decoded !== 'string') {
-          const mockUser = { 
-            _id: (decoded as DecodedToken).userId, 
-            email: "mock@user.com", 
-            name: "Mock User" 
-          };
-          return { user: mockUser };
+
+        if (decoded && typeof decoded !== 'string' && (decoded as DecodedToken).userId) {
+          const user = await User.findById((decoded as DecodedToken).userId);
+          
+          if (user && user.email) {
+            const userForContext = {
+              _id: user._id.toString(),
+              email: user.email,   
+              name: user.name || "Unnamed User",   
+            };
+
+          console.log("[Context] User found, returning context:", { user: userForContext }); // 日志5
+          return { user: userForContext };
         }
+      }
+        console.warn("[Context] No valid user, returning null."); // 日志6
         return { user: null };
       } catch (error) {
         console.error('Context auth error:', error);

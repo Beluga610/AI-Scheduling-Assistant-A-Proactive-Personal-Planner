@@ -40,13 +40,13 @@ export const resolvers = {
         // --- User Queries ---
         me: async (_: any, __: any, context: any) => {
             const user = checkAuth(context);
-            const foundUser = await User.findById(user.id);
+            const foundUser = await User.findById(user._id);
             return toGraphql(foundUser);
         },
 
         users: async () => {
             const users = await User.find({});
-            return users.map(toGraphql); // 👈 Clean & simple mapping
+            return users.map(toGraphql); 
         },
 
         // --- Data Queries ---
@@ -95,7 +95,7 @@ export const resolvers = {
             const res = await newUser.save();
 
             const token = jwt.sign(
-                { id: res.id, email: res.email },
+                { userId: res._id.toString(), email: res.email },
                 process.env.JWT_SECRET || 'mysecretkey123',
                 { expiresIn: '2h' }
             );
@@ -108,34 +108,38 @@ export const resolvers = {
         },
 
         login: async (_: any, { input }: any) => {
-            const { email, password } = input;
+        const { email, name } = input;
 
-            const user = await User.findOne({ email });
-            if (!user || !user.password) {
-                throw new GraphQLError('User not found or password not set', {
-                    extensions: { code: 'BAD_USER_INPUT' },
-                });
-            }
+        const user = await User.findOne({ email });
+        if (!user) {
+            throw new GraphQLError("User not found", {
+            extensions: { code: "BAD_USER_INPUT" },
+            });
+        }
 
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) {
-                throw new GraphQLError('Wrong credentials', {
-                    extensions: { code: 'BAD_USER_INPUT' },
-                });
-            }
+        if (name && user.name !== name) {
+            throw new GraphQLError("Name and email do not match", {
+            extensions: { code: "BAD_USER_INPUT" },
+            });
+        }
 
-            const token = jwt.sign(
-                { id: user.id, email: user.email },
-                process.env.JWT_SECRET || 'mysecretkey123',
-                { expiresIn: '2h' }
-            );
+        //
+        const token = jwt.sign(
+            { userId: user._id.toString(), email: user.email },
+            process.env.JWT_SECRET || "mysecretkey123",
+            { expiresIn: "2h" }
+        );
 
-            // Use helper for consistency
-            return {
-                token,
-                user: toGraphql(user)
-            };
+        return {
+            token,
+            user: {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            },
+        };
         },
+
 
         // --- CORE FEATURES ---
         createTask: async (_: any, { input }: any, context: any) => {
@@ -144,7 +148,7 @@ export const resolvers = {
             const newTask = new Task({
                 ...input,
                 status: 'TODO',
-                owner: user.id
+                owner: user._id
             });
             const res = await newTask.save();
             return toGraphql(res);
@@ -152,7 +156,7 @@ export const resolvers = {
 
         splitTask: async (_: any, { prompt }: { prompt: string }, context: any) => {
             const user = checkAuth(context);
-            console.log(`splitTask: Processing for user ${user.id}`);
+            console.log(`splitTask: Processing for user ${user._id}`);
 
             // 1. Call AI Logic
             const tasksFromLLM = await splitTaskUsingLLM(prompt);
@@ -163,7 +167,7 @@ export const resolvers = {
                     const task = new Task({
                         ...taskData,
                         status: 'TODO',
-                        owner: user.id
+                        owner: user._id
                     });
                     const saved = await task.save();
                     return toGraphql(saved); // 👈 Map each one individually
@@ -188,7 +192,7 @@ export const resolvers = {
                 end: task.dueDate || new Date(Date.now() + 3600 * 1000), // 1 hour duration
                 allDay: false,
                 sourceTask: task.id,
-                owner: user.id
+                owner: user._id
             };
 
             // 3. Save Event
