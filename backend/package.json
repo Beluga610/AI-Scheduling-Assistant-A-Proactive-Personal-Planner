@@ -9,13 +9,14 @@
     "test:deepseek": "tsx test-deepseek.ts"
   },
   "dependencies": {
+    "20": "^3.1.9",
     "@apollo/server": "^4.9.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.0",
     "graphql": "^16.8.0",
     "graphql-tag": "^2.12.0",
-    "mongoose": "^7.5.0",
     "jsonwebtoken": "^9.0.0",
-    "bcryptjs": "^2.4.3",
-    "dotenv": "^16.3.0"
+    "mongoose": "^7.5.0"
   },
   "devDependencies": {
     "typescript": "^5.2.0",

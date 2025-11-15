@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import mongoose from 'mongoose'; // 需要导入 mongoose
-import User from "../models/User";
+import User from "./models/User";
 import { typeDefs } from './schema';
 import { resolvers } from './resolvers';
 import { Context, DecodedToken } from './types';

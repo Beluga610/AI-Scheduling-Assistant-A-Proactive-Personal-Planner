@@ -1,41 +1,38 @@
+// src/pages/HomePage.tsx
+
 import React from "react";
-import Navbar from "../components/Navbar";
-import TaskInput from "../components/TaskInput";
-import CalendarView from "../components/CalendarView";
-import { useQuery } from "@apollo/client";
-import { PING } from "../graphql/queries";
+import { useNavigate } from "react-router-dom";
 
 export const HomePage: React.FC = () => {
-  const { data, loading, error } = useQuery(PING);
+  const navigate = useNavigate();
 
   return (
-    <div className="app">
-      <div className="header">
-        <h1>LLM → Calendar Demo</h1>
-        <div>
-          {loading
-            ? "checking server..."
-            : error
-            ? `Error: ${error.message}`
-            : data?.ping}
+    <div className="welcome-container">
+      <div className="welcome-card">
+        <h1 className="welcome-title">AI 约会助手 💘</h1>
+        <p className="welcome-subtitle">
+          智能规划 · 自动安排 · 冲突检测 · 多对象协调  
+        </p>
+
+        <div className="welcome-buttons">
+          <button
+            className="welcome-btn primary"
+            onClick={() => navigate("/login")}
+          >
+            登录已有账号
+          </button>
+
+          <button
+            className="welcome-btn secondary"
+            onClick={() => navigate("/register")}
+            disabled
+          >
+            注册新用户（暂未开放）
+          </button>
         </div>
-      </div>
 
-      <Navbar />
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12 }}>
-        <div>
-          <div className="card">
-            <h3>Create Task</h3>
-            <TaskInput />
-          </div>
-        </div>
-
-        <div>
-          <div className="card">
-            <h3>Calendar</h3>
-            <CalendarView />
-          </div>
+        <div className="welcome-footer">
+          <p>当前支持的用户：yining · lijun · yizhuo</p>
         </div>
       </div>
     </div>
