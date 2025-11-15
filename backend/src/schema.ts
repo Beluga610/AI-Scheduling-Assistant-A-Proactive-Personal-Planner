@@ -1,84 +1,116 @@
-// backend/src/schema.ts
-export const typeDefs = `#graphql
-  # 玩家类型
-  enum PlayerKind {
-    HUMAN
-    AI
-  }
+// src/schema.ts
+import { gql } from 'graphql-tag';
 
-  # 游戏阶段
-  enum GamePhase {
-    LOBBY
-    DISCUSSION
-    VOTING
-    REVEAL
-    GAME_OVER
-  }
-
-  # 玩家
-  type Player {
+// 定义 GraphQL Schema
+export const typeDefs = gql`
+  # -----------------
+  # 对象类型
+  # -----------------
+  
+  type User {
     id: ID!
-    name: String!
-    kind: PlayerKind!
-    isEliminated: Boolean!
-    avatar: String
+    email: String!
+    name: String
+    tasks: [Task] # 用户关联的任务
+    calendarEvents: [CalendarEvent] # 用户关联的日历事件
   }
 
-  # 消息
-  type Message {
+  type Task {
     id: ID!
-    playerId: ID!
-    playerName: String!
-    text: String!
-    timestamp: String!
+    title: String!
+    description: String
+    dueDate: String # ISO 8601 日期字符串
+    status: TaskStatus! # 任务状态
+    owner: User!
   }
 
-  # 投票
-  type Vote {
-    voterId: ID!
-    targetId: ID!
-  }
-
-  # 游戏状态
-  type GameState {
+  type CalendarEvent {
     id: ID!
-    phase: GamePhase!
-    round: Int!
-    players: [Player!]!
-    messages: [Message!]!
-    winner: String
+    title: String!
+    start: String! # ISO 8601 日期字符串
+    end: String! # ISO 8601 日期字符串
+    allDay: Boolean
+    sourceTask: Task # 关联的原始任务
   }
 
-  # 查询
+  enum TaskStatus {
+    TODO
+    IN_PROGRESS
+    DONE
+  }
+
+  # 认证载荷，用于登录和注册后返回
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  # -----------------
+  # 输入类型
+  # -----------------
+
+  input RegisterInput {
+    email: String!
+    password: String!
+    name: String
+  }
+
+  input LoginInput {
+    email: String!
+    password: String!
+  }
+  
+  input CreateTaskInput {
+    title: String!
+    description: String
+    dueDate: String
+  }
+
+  # -----------------
+  # 查询 (Queries)
+  # -----------------
+
   type Query {
-    # 获取游戏状态
-    game(id: ID!): GameState
+    "健康检查端点"
+    ping: String
     
-    # 获取所有游戏
-    games: [GameState!]!
+    "获取当前登录的用户信息"
+    me: User
+    
+    "获取特定用户的所有任务"
+    userTasks(userId: ID!): [Task]
+    
+    "获取特定用户的所有日历事件"
+    userCalendarEvents(userId: ID!): [CalendarEvent]
+
+    "获取用户列表"
+    users: [User]
+
+    "获取任务列表"
+    tasks(ownerId: ID): [Task]
+
+    "获取日历事件列表"
+    events(ownerId: ID): [CalendarEvent]
   }
 
-  # 变更
+  # -----------------
+  # 变更 (Mutations)
+  # -----------------
+
   type Mutation {
-    # 创建游戏
-    createGame(playerName: String!): GameState!
+    "用户注册"
+    register(input: RegisterInput!): AuthPayload
     
-    # 开始游戏
-    startGame(gameId: ID!): GameState!
-    
-    # 发送消息
-    sendMessage(gameId: ID!, playerId: ID!, text: String!): GameState!
-    
-    # 提交投票
-    submitVote(gameId: ID!, voterId: ID!, targetId: ID!): GameState!
-    
-    # 下一阶段
-    nextPhase(gameId: ID!): GameState!
-  }
+    "用户登录"
+    login(input: LoginInput!): AuthPayload
 
-  # 订阅 (可选)
-  type Subscription {
-    # 游戏更新
-    gameUpdated(gameId: ID!): GameState!
+    "核心功能：使用 LLM 拆分一个复杂的任务"
+    splitTask(prompt: String!): [Task]!
+
+    "（可选）手动创建一个任务"
+    createTask(input: CreateTaskInput!): Task
+
+    "（可选）将一个任务同步到日历"
+    syncTaskToCalendar(taskId: ID!): CalendarEvent
   }
 `;

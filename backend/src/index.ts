@@ -1,95 +1,71 @@
-// backend/src/index.ts
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-
-// 获取文件路径
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// 加载 .env 文件（在根目录）
-const envPath = join(__dirname, '..', '..', '.env');
-console.log('📂 加载 .env 文件:', envPath);
-const result = dotenv.config({ path: envPath });
-
-if (result.error) {
-  console.error('❌ 加载 .env 失败:', result.error);
-} else {
-  console.log('✅ .env 文件加载成功');
-}
-
-// 检查环境变量
-console.log('🔑 DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY ? '✅ 已设置' : '❌ 未设置');
-console.log('🔧 PORT:', process.env.PORT || '4000 (默认)');
-
-if (!process.env.DEEPSEEK_API_KEY) {
-  console.error('\n❌ 错误: DEEPSEEK_API_KEY 未设置');
-  console.error('💡 请确认 .env 文件存在:', envPath);
-  process.exit(1);
-}
-
-// 导入其他模块
+import 'dotenv/config'; 
 import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import express from 'express';
-import http from 'http';
-import cors from 'cors';
-import { typeDefs } from './schema.js';
-import { resolvers } from './resolvers.js';
-import { GameOrchestrator } from './agents/GameOrchestrator.js';
-import { AIAgent } from './agents/AIAgents.js';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import mongoose from 'mongoose'; // 需要导入 mongoose
+import User from "../models/User";
+import { typeDefs } from './schema';
+import { resolvers } from './resolvers';
+import { Context, DecodedToken } from './types';
+import { verifyToken } from './utils/auth';
 
-const PORT = parseInt(process.env.PORT || '4000', 10);
+const PORT = process.env.PORT || 4000;
+const MONGO_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/llm_calendar";
 
-async function startServer() {
-  const app = express();
-  const httpServer = http.createServer(app);
+const initialUsers = [
+  { name: "yining", email: "yining@admin.com" },
+  { name: "lijun", email: "lijun@admin.com" },
+  { name: "yizhuo", email: "yizhuo@admin.com" },
+];
 
-  // 测试 DeepSeek API 连接
-  console.log('\n' + '='.repeat(60));
-  console.log('🧪 测试 DeepSeek API 连接...');
-  await AIAgent.testConnection();
-  console.log('='.repeat(60) + '\n');
+async function initAdmins() {
+  for (const u of initialUsers) {
+    const existing = await User.findOne({ email: u.email });
+    if (!existing) {
+      const user = new User(u);
+      await user.save();
+      console.log(`Created initial user: ${u.name}`);
+    } else {
+      console.log(`User already exists: ${u.name}`);
+    }
+  }
+}
 
-  // 初始化游戏编排器
-  const gameOrchestrator = new GameOrchestrator();
+async function start() {
+  // connect db
+  await mongoose.connect(MONGO_URI);
+  console.log("MongoDB connected");
+  await initAdmins();
 
-  // 创建 Apollo Server
-  const server = new ApolloServer({
+  const server = new ApolloServer<Context>({
     typeDefs,
     resolvers,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
   });
 
-  await server.start();
-
-  // 中间件
-  app.use(
-    '/graphql',
-    cors<cors.CorsRequest>({
-      origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    }),
-    express.json(),
-    expressMiddleware(server, {
-      context: async () => ({
-        gameOrchestrator,
-      }),
-    })
-  );
-
-  // 健康检查
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: Number(PORT) },
+    context: async ({ req }) => {
+      const token = req.headers.authorization?.split(' ')[1] || '';
+      
+      try {
+        const decoded = verifyToken(token);
+        if (decoded && typeof decoded !== 'string') {
+          const mockUser = { 
+            _id: (decoded as DecodedToken).userId, 
+            email: "mock@user.com", 
+            name: "Mock User" 
+          };
+          return { user: mockUser };
+        }
+        return { user: null };
+      } catch (error) {
+        console.error('Context auth error:', error);
+        return { user: null };
+      }
+    },
   });
 
-  await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
-  
-  console.log(`\n🚀 Server ready at http://localhost:${PORT}/graphql`);
-  console.log(`📊 GraphQL Playground: http://localhost:${PORT}/graphql\n`);
+  console.log(`🚀 Server ready at: ${url}`);
 }
 
-startServer().catch((error) => {
-  console.error('\n❌ Failed to start server:', error);
-  process.exit(1);
-});
+// 启动服务器
+start().catch(console.error);
