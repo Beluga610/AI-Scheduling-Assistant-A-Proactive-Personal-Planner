@@ -1,25 +1,23 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+// Ensure env vars are loaded
 dotenv.config();
 
 export const connectDB = async () => {
-  const mongoUri = process.env.MONGODB_URI;
+    const mongoUri = process.env.MONGODB_URI;
 
-  if (!mongoUri) {
-    console.error('错误: MONGODB_URI 未在 .env 文件中定义');
-    process.exit(1);
-  }
+    if (!mongoUri) {
+        console.error('❌ Error: MONGODB_URI is not defined in .env file');
+        process.exit(1);
+    }
 
-  try {
-    // TODO: 实现完整的 Mongoose 连接逻辑
-    // await mongoose.connect(mongoUri);
-    
-    // 模拟连接成功
-    await new Promise(resolve => setTimeout(resolve, 100)); // 模拟异步
-    console.log('MongoDB (模拟) 连接成功');
+    try {
+        // Connecting to the actual database
+        const conn = await mongoose.connect(mongoUri);
 
-  } catch (error) {
-    console.error('MongoDB 连接失败:', error);
-    process.exit(1);
-  }
+        console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.error('❌ MongoDB connection failed:', error);
+        process.exit(1);
+    }
 };

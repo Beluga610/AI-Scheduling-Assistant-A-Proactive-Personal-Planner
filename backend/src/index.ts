@@ -1,12 +1,14 @@
-import 'dotenv/config'; 
+import 'dotenv/config';
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-import mongoose from 'mongoose'; // 需要导入 mongoose
-import User from "../models/User";
-import { typeDefs } from './schema';
-import { resolvers } from './resolvers';
-import { Context, DecodedToken } from './types';
-import { verifyToken } from './utils/auth';
+import mongoose from 'mongoose';
+
+// ADD .js TO ALL LOCAL IMPORTS
+import User from "./models/User.js";
+import { typeDefs } from './schema.js';
+import { resolvers } from './resolvers.js';
+import { Context, DecodedToken } from './types.js';
+import { verifyToken } from './utils/auth.js';
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/llm_calendar";
