@@ -3,6 +3,13 @@ import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, from } from "@apollo
 const authLink = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem("token");
 
+  console.log(
+    "[AuthLink] Operation:", 
+    operation.operationName, 
+    "| Sending token:", 
+    token ? `Yes (...${token.slice(-6)})` : "No"
+  );
+  
   operation.setContext({
     headers: {
       authorization: token ? `Bearer ${token}` : "",

@@ -199,7 +199,55 @@ export const resolvers = {
             const calendarEvent = new CalendarEvent(mockEventData);
             const res = await calendarEvent.save();
             return toGraphql(res);
-        }
+        },
+
+        // -----------------
+        // 日历事件 CRUD
+        // -----------------
+
+        createEvent: async (_: any, args: any, context: any) => {
+            const user = checkAuth(context);
+
+            const event = new CalendarEvent({
+                title: args.title,
+                start: args.start,
+                end: args.end,
+                allDay: args.allDay || false,
+                owner: user.id,
+            });
+
+            const saved = await event.save();
+            return toGraphql(saved);
+        },
+
+        updateEvent: async (_: any, args: any, context: any) => {
+            const user = checkAuth(context);
+
+            const { id, ...updates } = args;
+            const ev = await CalendarEvent.findById(id);
+
+            if (!ev) throw new Error("Event not found");
+            if (ev.owner.toString() !== user.id)
+                throw new Error("Not authorized");
+
+            Object.assign(ev, updates);
+
+            const saved = await ev.save();
+            return toGraphql(saved);
+        },
+
+        deleteEvent: async (_: any, { id }: any, context: any) => {
+            const user = checkAuth(context);
+
+            const ev = await CalendarEvent.findById(id);
+            if (!ev) throw new Error("Event not found");
+            if (ev.owner.toString() !== user.id)
+                throw new Error("Not authorized");
+
+            await CalendarEvent.findByIdAndDelete(id);
+            return true;
+        },
+
     },
 
     // --- FIELD RESOLVERS (Relationships) ---

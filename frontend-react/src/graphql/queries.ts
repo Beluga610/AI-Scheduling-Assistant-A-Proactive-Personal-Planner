@@ -80,3 +80,31 @@ export const GET_ME_QUERY = gql`
     }
   }
 `;
+
+export const CREATE_EVENT = gql`
+  mutation CreateEvent($title: String!, $start: String!, $end: String!) {
+    createEvent(title: $title, start: $start, end: $end) {
+      id
+      title
+      start
+      end
+    }
+  }
+`;
+
+export const UPDATE_EVENT = gql`
+  mutation UpdateEvent($id: ID!, $title: String, $start: String, $end: String) {
+    updateEvent(id: $id, title: $title, start: $start, end: $end) {
+      id
+      title
+      start
+      end
+    }
+  }
+`;
+
+export const DELETE_EVENT = gql`
+  mutation DeleteEvent($id: ID!) {
+    deleteEvent(id: $id)
+  }
+`;

@@ -51,7 +51,7 @@ async function start() {
       
       try {
         const decoded = verifyToken(token);
-
+        console.log("[Context] Decoded payload:", decoded); // 日志4.1
         if (decoded && typeof decoded !== 'string' && (decoded as DecodedToken).userId) {
           const user = await User.findById((decoded as DecodedToken).userId);
           

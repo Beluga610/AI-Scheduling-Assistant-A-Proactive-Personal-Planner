@@ -112,5 +112,25 @@ input LoginInput {
 
     "（可选）将一个任务同步到日历"
     syncTaskToCalendar(taskId: ID!): CalendarEvent
+
+    "创建日历事件"
+    createEvent(
+      title: String!
+      start: String!
+      end: String!
+      allDay: Boolean
+    ): CalendarEvent
+
+    "更新日历事件"
+    updateEvent(
+      id: ID!
+      title: String
+      start: String
+      end: String
+      allDay: Boolean
+    ): CalendarEvent
+
+    "删除日历事件"
+    deleteEvent(id: ID!): Boolean
   }
 `;
