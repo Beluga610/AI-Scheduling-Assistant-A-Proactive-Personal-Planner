@@ -55,10 +55,10 @@ export const typeDefs = gql`
     name: String
   }
 
-  input LoginInput {
-    email: String!
-    password: String!
-  }
+input LoginInput {
+  email: String!
+  name: String
+}
   
   input CreateTaskInput {
     title: String!
@@ -112,5 +112,35 @@ export const typeDefs = gql`
 
     "（可选）将一个任务同步到日历"
     syncTaskToCalendar(taskId: ID!): CalendarEvent
+
+    "创建日历事件"
+    createEvent(
+      title: String!
+      start: String!
+      end: String!
+      allDay: Boolean
+    ): CalendarEvent
+
+    "更新日历事件"
+    updateEvent(
+      id: ID!
+      title: String
+      start: String
+      end: String
+      allDay: Boolean
+    ): CalendarEvent
+
+    "删除日历事件"
+    deleteEvent(id: ID!): Boolean
+
+    "AI 聊天窗口"
+    chatWithAI(prompt: String!): AIResponse
   }
+    
+  type AIResponse {
+    message: String!                  # AI 给用户的自然语言回复
+    latestEvents: [CalendarEvent]     # 返回最新的事件列表，用于前端自动刷新日历
+  }
+
 `;
+

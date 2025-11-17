@@ -47,13 +47,13 @@ export const CREATE_TASK = gql`
   }
 `;
 export const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($input: LoginInput!) {
+    login(input: $input) {
       token
       user {
         id
-        email
         name
+        email
       }
     }
   }
@@ -72,6 +72,49 @@ export const GET_ME_QUERY = gql`
         dueDate
       }
       calendarEvents {
+        id
+        title
+        start
+        end
+        allDay
+      }
+    }
+  }
+`;
+
+export const CREATE_EVENT = gql`
+  mutation CreateEvent($title: String!, $start: String!, $end: String!) {
+    createEvent(title: $title, start: $start, end: $end) {
+      id
+      title
+      start
+      end
+    }
+  }
+`;
+
+export const UPDATE_EVENT = gql`
+  mutation UpdateEvent($id: ID!, $title: String, $start: String, $end: String) {
+    updateEvent(id: $id, title: $title, start: $start, end: $end) {
+      id
+      title
+      start
+      end
+    }
+  }
+`;
+
+export const DELETE_EVENT = gql`
+  mutation DeleteEvent($id: ID!) {
+    deleteEvent(id: $id)
+  }
+`;
+
+export const CHAT_WITH_AI = gql`
+  mutation ChatWithAI($prompt: String!) {
+    chatWithAI(prompt: $prompt) {
+      message
+      latestEvents {
         id
         title
         start
