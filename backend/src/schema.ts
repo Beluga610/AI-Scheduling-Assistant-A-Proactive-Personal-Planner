@@ -132,5 +132,15 @@ input LoginInput {
 
     "删除日历事件"
     deleteEvent(id: ID!): Boolean
+
+    "AI 聊天窗口"
+    chatWithAI(prompt: String!): AIResponse
   }
+    
+  type AIResponse {
+    message: String!                  # AI 给用户的自然语言回复
+    latestEvents: [CalendarEvent]     # 返回最新的事件列表，用于前端自动刷新日历
+  }
+
 `;
+

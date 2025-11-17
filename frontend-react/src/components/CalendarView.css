@@ -1,10 +1,11 @@
 /* 整体容器：让日历瘦长、现代、有圆角 */
 .calendar-wrapper {
-  height: 480px; /* 调整日历高度 */
+  /* height: 480px;  <-- 删除这一行，或者改大 */
+  height: 80vh;      /* ✅ 改为视窗高度的 80%，或者固定 800px */
   width: 100%;
   background: white;
   border-radius: 10px;
-  overflow: hidden;
+  overflow-y: auto;  /* ✅ 改为 auto，允许上下滚动 */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   padding: 4px;
 }

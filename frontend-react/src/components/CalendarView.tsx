@@ -1,3 +1,4 @@
+// CalendarView.tsx
 import React, { useMemo, useState } from "react";
 import {
   Calendar,
@@ -8,8 +9,7 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import zhCN from "date-fns/locale/zh-CN";
 
 import { useMutation } from "@apollo/client";
-import { CREATE_EVENT, UPDATE_EVENT, DELETE_EVENT } from "../graphql/queries";
-import { GET_ME_QUERY } from "../graphql/queries";
+import { CREATE_EVENT, UPDATE_EVENT, DELETE_EVENT, GET_ME_QUERY } from "../graphql/queries";
 
 import AddEventModal from "./AddEventModal";
 import EditEventModal from "./EditEventModal";
@@ -17,11 +17,13 @@ import EditEventModal from "./EditEventModal";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./CalendarView.css";
 
+
 interface CalendarEvent {
   id: string;
   title: string;
-  start: string;
-  end: string;
+  start: string | number | Date;
+  end: string | number | Date;
+  allDay?: boolean;
 }
 
 const locales = { "zh-CN": zhCN };
@@ -34,16 +36,32 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-export default function CalendarView({ events }) {
-  const formattedEvents = useMemo(
-    () =>
-      events.map((ev) => ({
-        ...ev,
-        start: new Date(ev.start),
-        end: new Date(ev.end),
-      })),
-    [events]
-  );
+/** 关键：兼容 ISO 字符串 & 时间戳字符串 */
+const parseDate = (input: any) => {
+  if (!input) return new Date();
+
+  // 已经是 Date
+  if (input instanceof Date) return input;
+
+  // 数字字符串
+  if (typeof input === "string" && /^\d+$/.test(input)) {
+    return new Date(Number(input));
+  }
+
+  // 普通 ISO 字符串
+  return new Date(input);
+};
+
+export default function CalendarView({ events }: { events: CalendarEvent[] }) {
+  /** 关键：这里修复了传入的事件格式 */
+  const formattedEvents = useMemo(() => {
+    return events.map(ev => ({
+      ...ev,
+      start: parseDate(ev.start),
+      end: parseDate(ev.end),
+    }));
+  }, [events]);
+
 
   // CRUD Mutations
   const [createEvent] = useMutation(CREATE_EVENT, {
@@ -58,9 +76,10 @@ export default function CalendarView({ events }) {
     refetchQueries: [{ query: GET_ME_QUERY }],
   });
 
-  // Modal states
-  const [slotInfo, setSlotInfo] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // Modal state
+  const [slotInfo, setSlotInfo] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
   return (
     <div className="calendar-wrapper">
@@ -73,7 +92,7 @@ export default function CalendarView({ events }) {
         step={60}
         timeslots={1}
         min={new Date(2024, 1, 1, 9, 0)}
-        max={new Date(2024, 1, 1, 22, 0)}
+        max={new Date(2024, 1, 1, 23, 59)}
         onSelectSlot={(info) => setSlotInfo(info)}
         onSelectEvent={(event) => setSelectedEvent(event)}
       />

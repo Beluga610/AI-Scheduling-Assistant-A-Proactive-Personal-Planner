@@ -76,6 +76,7 @@ export const GET_ME_QUERY = gql`
         title
         start
         end
+        allDay
       }
     }
   }
@@ -106,5 +107,19 @@ export const UPDATE_EVENT = gql`
 export const DELETE_EVENT = gql`
   mutation DeleteEvent($id: ID!) {
     deleteEvent(id: $id)
+  }
+`;
+
+export const CHAT_WITH_AI = gql`
+  mutation ChatWithAI($prompt: String!) {
+    chatWithAI(prompt: $prompt) {
+      message
+      latestEvents {
+        id
+        title
+        start
+        end
+      }
+    }
   }
 `;
