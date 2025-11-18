@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+﻿import { gql } from "@apollo/client";
 
 export const PING = gql`
   query Ping {
@@ -30,7 +30,7 @@ export const GET_EVENTS = gql`
 export const GET_USERS = gql`
   query GetUsers {
     users {
-      _id
+      id     # Changed _id to id to match your Schema and DTO
       name
       email
     }
@@ -46,6 +46,7 @@ export const CREATE_TASK = gql`
     }
   }
 `;
+
 export const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {
     login(input: $input) {
@@ -111,14 +112,15 @@ export const DELETE_EVENT = gql`
 `;
 
 export const CHAT_WITH_AI = gql`
-  mutation ChatWithAI($prompt: String!) {
-    chatWithAI(prompt: $prompt) {
+  mutation ChatWithAI($prompt: String!, $history: [ChatMessageInput]) {
+    chatWithAI(prompt: $prompt, history: $history) {
       message
       latestEvents {
         id
         title
         start
         end
+        allDay
       }
     }
   }
