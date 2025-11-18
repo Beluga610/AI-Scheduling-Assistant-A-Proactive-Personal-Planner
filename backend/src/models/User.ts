@@ -10,7 +10,7 @@ const UserSchema: Schema = new Schema(
     {
         name: { type: String, required: false },
         email: { type: String, required: true, unique: true },
-        password: { type: String, required: true } // Required for login
+        password: { type: String, required: false } // Required for login
     },
     {
         timestamps: true, // Adds createdAt and updatedAt automatically

@@ -254,16 +254,21 @@ export const resolvers = {
             const user = checkAuth(context);
 
             // B. 调用 AI Agent 分析意图
-            const { intent, eventData, replyMessage } = await processUserMessage(prompt);
+            const { intent, events, replyMessage } = await processUserMessage(prompt);
 
             // C. 如果 AI 决定创建日程，则写入数据库
-            if (intent === 'create_event' && eventData) {
-                const newEvent = new CalendarEvent({
-                    ...eventData,
-                    owner: user._id // 关键：绑定给当前登录的用户
-                });
-                await newEvent.save();
-                console.log(`✅ AI 为用户 ${user.name} 自动创建了日程:`, newEvent.title);
+            if (intent === 'create_event' && events && events.length > 0) {
+                console.log(`📝 AI 识别出 ${events.length} 个事件，准备创建...`);
+                
+                // 使用 Promise.all 并行保存所有事件
+                await Promise.all(events.map(async (eventData) => {
+                    const newEvent = new CalendarEvent({
+                        ...eventData,
+                        owner: user._id
+                    });
+                    await newEvent.save();
+                    console.log(`✅ 已创建: ${newEvent.title} (${newEvent.start})`);
+                }));
             }
 
             // D. 获取该用户最新的所有日程 (为了让前端日历自动刷新)

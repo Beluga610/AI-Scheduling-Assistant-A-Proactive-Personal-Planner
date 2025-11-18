@@ -25,7 +25,7 @@ interface AgentResult {
         start: Date;
         end: Date;
         allDay: boolean;
-    };
+    }[];
 }
 
 export async function processUserMessage(prompt: string): Promise<AgentResult> {
@@ -40,24 +40,31 @@ export async function processUserMessage(prompt: string): Promise<AgentResult> {
     You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
     
     # Key Rules
-    1.  The current time is: ${localTime}. Use this timezone (GMT+0800) as the baseline for all relative times (like "tomorrow").
+    1.  The current time is: ${localTime}. Use this timezone (GMT+0800) as the baseline.
     2.  If the user says "PM" (e.g., "3 PM"), use 12-hour addition (e.g., 15:00).
-    3.  If the user says "evening" or "night" (e.g., "8 PM"), use 12-hour addition (e.g., 20:00).
-    4.  If the user only provides a start time (e.g., "coffee at 3"), assume a default duration of 1 hour.
-    5.  If the user's intent is to create a schedule, the intent must be 'create_event'.
-    6.  All returned times (start and end) must be complete ISO 8601 strings including the timezone.
-    7.  If a new event request conflicts with an existing one, you must first state the specific clash and ask the user for a resolution (e.g., reschedule, cancel, or overlap).
+    3.  If the user provides multiple tasks, create multiple event objects.
+    4.  If the user only provides a start time, assume a default duration of 1 hour.
+    5.  If the intent involves scheduling, set intent to 'create_event'.
+    6.  All times must be ISO 8601 strings including the timezone.
 
     # JSON Output Format (Must follow strictly)
     {
       "intent": "chat" | "create_event",
-      "replyMessage": "A natural language confirmation for the user",
-      "eventData": {
-        "title": "Event Title",
-        "start": "YYYY-MM-DDTHH:MM:SS+08:00",
-        "end": "YYYY-MM-DDTHH:MM:SS+08:00",
-        "allDay": false
-      }
+      "replyMessage": "A natural language confirmation summarizing what was scheduled",
+      "events": [
+        {
+          "title": "Event 1 Title",
+          "start": "YYYY-MM-DDTHH:MM:SS+08:00",
+          "end": "YYYY-MM-DDTHH:MM:SS+08:00",
+          "allDay": false
+        },
+        {
+          "title": "Event 2 Title",
+          "start": "...",
+          "end": "...",
+          "allDay": false
+        }
+      ]
     }
   `;
 
@@ -80,19 +87,18 @@ export async function processUserMessage(prompt: string): Promise<AgentResult> {
 
         const result = JSON.parse(content);
 
-        if (result.intent === 'create_event' && result.eventData) {
+        if (result.intent === 'create_event' && result.events && Array.isArray(result.events)) {
             return {
                 intent: 'create_event',
                 replyMessage: result.replyMessage,
-                eventData: {
-                    title: result.eventData.title,
-                    start: new Date(result.eventData.start), // Convert to Date object
-                    end: new Date(result.eventData.end),     // Convert to Date object
-                    allDay: result.eventData.allDay || false
-                }
+                events: result.events.map((e: any) => ({
+                    title: e.title,
+                    start: new Date(e.start),
+                    end: new Date(e.end),
+                    allDay: e.allDay || false
+                }))
             };
         }
-
         return {
             intent: 'chat',
             replyMessage: result.replyMessage
