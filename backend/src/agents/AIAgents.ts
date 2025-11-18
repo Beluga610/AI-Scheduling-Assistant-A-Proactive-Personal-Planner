@@ -2,98 +2,110 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
-// 确保环境变量被加载 (双重保险)
-dotenv.config(); 
+dotenv.config();
 
-// 1. 获取 Key
 const apiKey = process.env.DEEPSEEK_API_KEY;
 
-// 🔍 调试日志：启动时检查 Key 是否存在
-// (只会打印前几位，不会泄露完整 Key)
 if (!apiKey) {
-  console.error("❌ 严重错误: 未找到 DEEPSEEK_API_KEY！请检查 backend/.env 文件");
+    console.error("❌ FATAL ERROR: DEEPSEEK_API_KEY not found! Check backend/.env file");
 } else {
-  console.log(`✅ DeepSeek API Key 已加载: ${apiKey.substring(0, 5)}...`);
+    console.log(`✅ DeepSeek API Key loaded: ${apiKey.substring(0, 5)}...`);
 }
 
-// 2. 初始化客户端 (指定 DeepSeek BaseURL)
 const client = new OpenAI({
-  baseURL: 'https://api.deepseek.com', // 👈 关键！必须指向 DeepSeek
-  apiKey: apiKey || 'sk-invalid-key',  // 如果没读到，给个假值防止报错崩溃，让后面 API 报 401
+    baseURL: 'https://api.deepseek.com',
+    apiKey: apiKey || 'sk-invalid-key',
 });
 
 interface AgentResult {
-  intent: 'chat' | 'create_event';
-  replyMessage: string;
-  eventData?: {
-    title: string;
-    start: Date;
-    end: Date;
-    allDay: boolean;
-  };
+    intent: 'chat' | 'create_event';
+    replyMessage: string;
+    eventData?: {
+        title: string;
+        start: Date;
+        end: Date;
+        allDay: boolean;
+    };
 }
 
 export async function processUserMessage(prompt: string): Promise<AgentResult> {
-  console.log("🤖 AI 收到指令:", prompt);
-  const now = new Date();
+    console.log("🤖 AI received instruction:", prompt);
 
-  const systemPrompt = `
-    你是一个智能日程助手。当前时间是: ${now.toISOString()} (周${now.getDay()})。
-    请严格按照以下 JSON 格式返回结果（不要使用 markdown）：
+    // 1. (FIX #1) Use .toString() to include the timezone
+    const now = new Date();
+    const localTime = now.toString(); // CRITICAL: This produces "Tue Nov 18 2025 00:05:35 GMT+0800 (Singapore Standard Time)"
+
+    // 2. (FIX #2) Strengthen the system prompt with strict rules
+    const systemPrompt = `
+    You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
+    
+    # Key Rules
+    1.  The current time is: ${localTime}. Use this timezone (GMT+0800) as the baseline for all relative times (like "tomorrow").
+    2.  If the user says "PM" (e.g., "3 PM"), use 12-hour addition (e.g., 15:00).
+    3.  If the user says "evening" or "night" (e.g., "8 PM"), use 12-hour addition (e.g., 20:00).
+    4.  If the user only provides a start time (e.g., "coffee at 3"), assume a default duration of 1 hour.
+    5.  If the user's intent is to create a schedule, the intent must be 'create_event'.
+    6.  All returned times (start and end) must be complete ISO 8601 strings including the timezone.
+    7.  If a new event request conflicts with an existing one, you must first state the specific clash and ask the user for a resolution (e.g., reschedule, cancel, or overlap).
+
+    # JSON Output Format (Must follow strictly)
     {
       "intent": "chat" | "create_event",
-      "replyMessage": "回复内容",
+      "replyMessage": "A natural language confirmation for the user",
       "eventData": {
-        "title": "标题",
-        "start": "ISO8601时间",
-        "end": "ISO8601时间",
-        "allDay": boolean
+        "title": "Event Title",
+        "start": "YYYY-MM-DDTHH:MM:SS+08:00",
+        "end": "YYYY-MM-DDTHH:MM:SS+08:00",
+        "allDay": false
       }
     }
   `;
 
-  try {
-    const completion = await client.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt }
-      ],
-      model: "deepseek-chat", // DeepSeek 的模型名
-      temperature: 0.1,
-      response_format: { type: "json_object" }
-    });
+    try {
+        const completion = await client.chat.completions.create({
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            model: "deepseek-chat",
+            temperature: 0.1,
+            response_format: { type: "json_object" }
+        });
 
-    const content = completion.choices[0].message.content;
-    if (!content) throw new Error("Empty response");
-    
-    const result = JSON.parse(content);
+        const content = completion.choices[0].message.content;
+        if (!content) throw new Error("Empty response");
 
-    if (result.intent === 'create_event' && result.eventData) {
-      return {
-        intent: 'create_event',
-        replyMessage: result.replyMessage,
-        eventData: {
-          title: result.eventData.title,
-          start: new Date(result.eventData.start),
-          end: new Date(result.eventData.end),
-          allDay: result.eventData.allDay || false
+        // 3. (FIX #3) Add debug log to see the raw AI response
+        console.log("🤖 AI Raw JSON Response:", content);
+
+        const result = JSON.parse(content);
+
+        if (result.intent === 'create_event' && result.eventData) {
+            return {
+                intent: 'create_event',
+                replyMessage: result.replyMessage,
+                eventData: {
+                    title: result.eventData.title,
+                    start: new Date(result.eventData.start), // Convert to Date object
+                    end: new Date(result.eventData.end),     // Convert to Date object
+                    allDay: result.eventData.allDay || false
+                }
+            };
         }
-      };
+
+        return {
+            intent: 'chat',
+            replyMessage: result.replyMessage
+        };
+
+    } catch (error) {
+        console.error("❌ LLM Call Failed:", error);
+        return {
+            intent: 'chat',
+            replyMessage: "Sorry, I'm having trouble connecting to my brain. Please check the backend logs."
+        };
     }
-
-    return {
-      intent: 'chat',
-      replyMessage: result.replyMessage
-    };
-
-  } catch (error) {
-    console.error("❌ LLM 调用失败:", error);
-    return {
-      intent: 'chat',
-      replyMessage: "抱歉，我连接大脑时出错了，请检查后端日志。"
-    };
-  }
 }
 
-// 保留旧接口兼容
+// Keep old interface for compatibility
 export async function splitTaskUsingLLM(task: string) { return []; }
