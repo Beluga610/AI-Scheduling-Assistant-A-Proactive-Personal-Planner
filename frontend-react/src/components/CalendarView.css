@@ -1,72 +1,92 @@
-/* 整体容器：让日历瘦长、现代、有圆角 */
+/* --- General Calendar Container --- */
+/* Keep calendar slim, modern, with rounded corners */
 .calendar-wrapper {
-  /* height: 480px;  <-- 删除这一行，或者改大 */
-  height: 80vh;      /* ✅ 改为视窗高度的 80%，或者固定 800px */
+  /* height: 480px;  <-- Removed based on previous logic, relying on 80vh */
+  height: 80vh;      
   width: 100%;
   background: white;
-  border-radius: 10px;
-  overflow-y: auto;  /* ✅ 改为 auto，允许上下滚动 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  padding: 4px;
+  border-radius: 16px; /* Increased radius to match UI */
+  overflow-y: auto;  
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 12px;
 }
 
-/* 时间轴更窄（更干净） */
+/* Slimmer time gutter */
 .rbc-time-gutter {
-  width: 40px !important;
+  width: 50px !important; /* Slightly wider for readability */
   font-size: 12px;
+  color: #888;
 }
 
-/* 每一行更紧凑 */
+/* Compact timeslots */
 .rbc-timeslot-group {
-  min-height: 35px !important; /* 默认是 60px，太高了 */
+  min-height: 40px !important; 
+  border-bottom: 1px solid #f0f0f0;
 }
 
-/* 星期标题栏美化 */
+/* Header styling */
 .rbc-header {
   font-weight: 600;
   font-size: 14px;
-  padding: 6px 0 !important;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
+  padding: 12px 0 !important;
+  background: #fff;
+  border-bottom: 2px solid #f6f8fb;
+  color: #444;
 }
 
-/* 事件卡片样式 —— 更像 Google Calendar */
+/* --- Event Card Styling (Matches specific Pink Theme) --- */
 .rbc-event {
   border-radius: 6px;
-  padding: 4px 6px;
-  background: #ffe4ea;       /* 浅粉 */
-  border-left: 4px solid #ff4f7a; /* 深粉 */
+  padding: 4px 8px;
+  background: #ffe4ea;       /* Light Pink Background */
+  border: none;              /* Remove default border */
+  border-left: 4px solid #ff4f7a; /* Deep Pink Accent */
   color: #333;
   font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(255, 79, 122, 0.1);
 }
 
-/* hover 效果 */
 .rbc-event:hover {
-  background: #ffd6e2;
+  background: #ffd1dc;
 }
 
-/* 工具栏美化：上一周 / 下一周 按钮 */
+.rbc-event-label {
+  font-size: 11px;
+  opacity: 0.8;
+  margin-bottom: 2px;
+}
+
+/* Toolbar Buttons */
 .rbc-toolbar button {
-  border-radius: 6px;
+  border-radius: 8px;
   background: white;
-  border: 1px solid #ddd;
-  padding: 4px 10px;
-  margin: 0 3px;
+  border: 1px solid #e0e0e0;
+  padding: 6px 12px;
+  margin: 0 4px;
+  color: #555;
+  transition: all 0.2s ease;
 }
 
-.rbc-toolbar button:hover {
-  background: #fafafa;
+.rbc-toolbar button:hover, .rbc-toolbar button:active, .rbc-toolbar button.rbc-active {
+  background: #f6f8fb;
+  border-color: #ccc;
+  color: #333;
+  box-shadow: none;
 }
 
 .rbc-toolbar-label {
-  font-weight: bold;
-  font-size: 16px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #222;
 }
 
+/* --- Modal Styling (Modern & Clean) --- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.4); /* Slightly darker backdrop for focus */
+  backdrop-filter: blur(2px);     /* Blur effect */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,21 +95,101 @@
 
 .modal {
   background: white;
-  padding: 20px;
-  width: 320px;
-  border-radius: 10px;
+  padding: 28px;
+  width: 360px;
+  border-radius: 20px; /* Large rounded corners */
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-left: 4px;
+}
+
+.modal input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+.modal input:focus {
+  border-color: #ff4f7a;
+}
+
+.modal input.input-disabled {
+  background-color: #f9f9f9;
+  color: #999;
+  border-color: #eee;
 }
 
 .modal-btn-row {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.modal input {
-  width: 100%;
-  padding: 6px;
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
+/* Secondary Button (Cancel) */
+.modal-btn.secondary {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.modal-btn.secondary:hover {
+  background: #e0e0e0;
+}
+
+/* Primary Button (Create/Save) */
+.modal-btn.primary {
+  background: #ff4f7a; /* Theme Pink */
+  color: white;
+}
+
+.modal-btn.primary:hover {
+  background: #e63e68;
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
