@@ -1,72 +1,94 @@
 // src/agents/AIAgents.ts
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
+// ... (other imports) ...
 
 dotenv.config();
-
 const apiKey = process.env.DEEPSEEK_API_KEY;
-
-if (!apiKey) {
-    console.error("❌ FATAL ERROR: DEEPSEEK_API_KEY not found! Check backend/.env file");
-} else {
-    console.log(`✅ DeepSeek API Key loaded: ${apiKey.substring(0, 5)}...`);
-}
-
+if (!apiKey) { console.error("❌ FATAL: DEEPSEEK_API_KEY not found!"); }
 const client = new OpenAI({
     baseURL: 'https://api.deepseek.com',
     apiKey: apiKey || 'sk-invalid-key',
 });
 
+// --- UPDATE 1: Interface needs to handle tool calls ---
 interface AgentResult {
-    intent: 'chat' | 'create_event';
+    intent: 'chat' | 'create_event' | 'call_tool'; // Add 'call_tool'
     replyMessage: string;
-    eventData?: {
+    events?: {
         title: string;
         start: Date;
         end: Date;
         allDay: boolean;
-    };
+    }[];
+    tool_name?: string; // Add tool_name
+    parameters?: any;   // Add parameters
 }
 
-export async function processUserMessage(prompt: string): Promise<AgentResult> {
+// --- UPDATE 2: Function signature must accept history ---
+export async function processUserMessage(
+    prompt: string,
+    history: any[] = [] // Pass in the conversation history
+): Promise<AgentResult> {
+
     console.log("🤖 AI received instruction:", prompt);
-
-    // 1. (FIX #1) Use .toString() to include the timezone
     const now = new Date();
-    const localTime = now.toString(); // CRITICAL: This produces "Tue Nov 18 2025 00:05:35 GMT+0800 (Singapore Standard Time)"
+    const localTime = now.toString();
 
-    // 2. (FIX #2) Strengthen the system prompt with strict rules
+    // --- UPDATE 3: The System Prompt must define tools ---
+    // ... inside processUserMessage ...
+
     const systemPrompt = `
     You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
-    
-    # Key Rules
-    1.  The current time is: ${localTime}. Use this timezone (GMT+0800) as the baseline for all relative times (like "tomorrow").
-    2.  If the user says "PM" (e.g., "3 PM"), use 12-hour addition (e.g., 15:00).
-    3.  If the user says "evening" or "night" (e.g., "8 PM"), use 12-hour addition (e.g., 20:00).
-    4.  If the user only provides a start time (e.g., "coffee at 3"), assume a default duration of 1 hour.
-    5.  If the user's intent is to create a schedule, the intent must be 'create_event'.
-    6.  All returned times (start and end) must be complete ISO 8601 strings including the timezone.
-    7.  If a new event request conflicts with an existing one, you must first state the specific clash and ask the user for a resolution (e.g., reschedule, cancel, or overlap).
+    Current time is: ${localTime}.
 
-    # JSON Output Format (Must follow strictly)
-    {
-      "intent": "chat" | "create_event",
-      "replyMessage": "A natural language confirmation for the user",
-      "eventData": {
-        "title": "Event Title",
-        "start": "YYYY-MM-DDTHH:MM:SS+08:00",
-        "end": "YYYY-MM-DDTHH:MM:SS+08:00",
-        "allDay": false
-      }
-    }
+    # TOOLS
+    You have one tool:
+    1.  **get_calendar_events**:
+        -   Description: Fetches the user's existing calendar events to find free time.
+        -   When to use: Call this BEFORE suggesting a time if the user's request is vague (e.g., "schedule dinner," "find a time").
+        -   Parameters: { "start": "ISO8601_string", "end": "ISO8601_string" } (e.g., for the next 7 days).
+    
+    # BEHAVIOR RULES
+    0.  **CRITICAL: CONFLICT CHECK**
+        -   When you receive data from 'get_calendar_events', you MUST look at the 'start' and 'end' of every existing event.
+        -   **Do NOT** suggest a time that overlaps with an existing event.
+        -   Example: If an event exists from 18:00 to 20:00, you CANNOT suggest 19:00. You must suggest 20:00 or later.
+        -   If the user asks for "evening" but 7 PM is taken, look for 8 PM or 9 PM.
+
+    1.  **Suggesting Times:**When you find free slots after calling 'get_calendar_events', do NOT write a paragraph. You MUST present them as a numbered list in 'replyMessage'.
+        Example Format:
+        "I found these free slots for [Activity]:\n
+        1. Tuesday 19th at 7:00 PM\n
+        2. Wednesday 20th at 8:00 PM\n
+        Please reply with the number (e.g., '1') to book."
+
+    2.  **Booking by Number:** If the user replies with a number (e.g., "1", "2", "option 1"), you MUST:
+        - Look at the *previous* assistant message in the history to see what "Option 1" was.
+        - Generate the 'create_event' JSON for that specific time.
+
+    3.  **Time Handling:**
+        - Use the current time (${localTime}) as the baseline.
+        - If the user says "PM", use 12-hour addition.
+        - All JSON times must be ISO 8601 strings including the timezone.
+
+    # OUTPUT FORMAT
+    -   If you need to call a tool, return ONLY JSON:
+        { "intent": "call_tool", "tool_name": "get_calendar_events", "parameters": { "start": "...", "end": "..." } }
+    -   If you have enough information (or have received tool results), return a final JSON:
+        { "intent": "chat" | "create_event", "replyMessage": "...", "events": [...] }
   `;
+
+    // --- UPDATE 4: Build the message history ---
+    const messages: any[] = [
+        { role: "system", content: systemPrompt }
+    ];
+    messages.push(...history); // Add all previous turns
+    messages.push({ role: "user", content: prompt }); // Add the new prompt
 
     try {
         const completion = await client.chat.completions.create({
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: prompt }
-            ],
+            messages: messages, // Use the full message list
             model: "deepseek-chat",
             temperature: 0.1,
             response_format: { type: "json_object" }
@@ -75,21 +97,30 @@ export async function processUserMessage(prompt: string): Promise<AgentResult> {
         const content = completion.choices[0].message.content;
         if (!content) throw new Error("Empty response");
 
-        // 3. (FIX #3) Add debug log to see the raw AI response
         console.log("🤖 AI Raw JSON Response:", content);
-
         const result = JSON.parse(content);
 
-        if (result.intent === 'create_event' && result.eventData) {
+        // --- UPDATE 5: Handle the 'call_tool' intent ---
+        if (result.intent === 'call_tool') {
+            return {
+                intent: 'call_tool',
+                replyMessage: "AI is requesting data...", // for logging
+                tool_name: result.tool_name,
+                parameters: result.parameters,
+            };
+        }
+
+        if (result.intent === 'create_event' && result.events && Array.isArray(result.events)) {
+            // (This part is the same as before)
             return {
                 intent: 'create_event',
                 replyMessage: result.replyMessage,
-                eventData: {
-                    title: result.eventData.title,
-                    start: new Date(result.eventData.start), // Convert to Date object
-                    end: new Date(result.eventData.end),     // Convert to Date object
-                    allDay: result.eventData.allDay || false
-                }
+                events: result.events.map((e: any) => ({
+                    title: e.title,
+                    start: new Date(e.start),
+                    end: new Date(e.end),
+                    allDay: e.allDay || false
+                }))
             };
         }
 
