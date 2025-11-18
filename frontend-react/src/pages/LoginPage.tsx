@@ -34,8 +34,12 @@ export const LoginPage: React.FC = () => {
 
       const token = data.login.token;
 
-      // 保存 token
+      // 1. 保存新的 token
       localStorage.setItem("token", token);
+      
+      // ✅ 2. [新增逻辑] 登录成功那一刻，清除旧的聊天记录
+      // 这样用户进入 Dashboard 时看到的就是全新的欢迎语
+      localStorage.removeItem("chat_history");
 
       navigate("/dashboard");
     } catch (err) {

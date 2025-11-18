@@ -7,13 +7,14 @@ const Navbar: React.FC = () => {  // 移除 const 命名
   // TODO: 真实实现 - 检查 token
   const isAuthenticated = !!localStorage.getItem('token'); // 模拟
 
-  const handleLogout = () => {
-    // TODO: 真实实现 - 登出逻辑
+const handleLogout = () => {
     console.log('Navbar: 登出');
     localStorage.removeItem('token');
-    // 强制刷新以重置 Apollo Client
+    
+    // ✅ 新增：登出时也清理聊天记录
+    localStorage.removeItem('chat_history');
+    
     window.location.href = '/login'; 
-    // navigate('/login');
   };
 
   return (
