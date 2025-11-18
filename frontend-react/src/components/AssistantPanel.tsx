@@ -42,6 +42,13 @@ export default function AssistantPanel() {
     if (!input.trim() || loading) return;
 
     const userText = input;
+
+    // 0. Convert frontend message format to backend 'ChatMessageInput' format
+    // We slice(-10) to only send the last 10 messages to save tokens/cost
+    const historyToSend = messages.slice(-10).map(m => ({
+      role: m.role === 'bot' || m.role === 'assistant' ? 'assistant' : 'user', 
+      content: m.text
+    }));
     
     // 1. Show user message immediately
     setMessages(prev => [...prev, { role: "user", text: userText }]);
@@ -49,7 +56,12 @@ export default function AssistantPanel() {
 
     try {
       // 2. Send to backend
-      const { data } = await sendMessage({ variables: { prompt: userText } });
+      const { data } = await sendMessage({ 
+        variables: { 
+          prompt: userText,
+          history: historyToSend // Pass the history here
+        } 
+      });
       
       // 3. Show AI response
       const aiReply = data.chatWithAI.message;
@@ -69,7 +81,11 @@ export default function AssistantPanel() {
 
       <div className="assistant-chat-history">
         {messages.map((m, i) => (
-          <div key={i} className={`assistant-message ${m.role === 'user' ? 'user' : 'bot'}`}>
+          <div 
+            key={i} 
+            className={`assistant-message ${m.role === 'user' ? 'user' : 'bot'}`}
+            style={{ whiteSpace: "pre-wrap" }}
+          >
             {m.text}
           </div>
         ))}

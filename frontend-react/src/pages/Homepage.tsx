@@ -9,9 +9,9 @@ export const HomePage: React.FC = () => {
   return (
     <div className="welcome-container">
       <div className="welcome-card">
-        <h1 className="welcome-title">AI 约会助手 💘</h1>
+        <h1 className="welcome-title">AI Dating Assistant 💘</h1>
         <p className="welcome-subtitle">
-          智能规划 · 自动安排 · 冲突检测 · 多对象协调  
+          Smart Planning · Auto Scheduling · Conflict Detection
         </p>
 
         <div className="welcome-buttons">
@@ -19,7 +19,7 @@ export const HomePage: React.FC = () => {
             className="welcome-btn primary"
             onClick={() => navigate("/login")}
           >
-            登录已有账号
+            Login
           </button>
 
           <button
@@ -27,12 +27,12 @@ export const HomePage: React.FC = () => {
             onClick={() => navigate("/register")}
             disabled
           >
-            注册新用户（暂未开放）
+            Register (Coming Soon)
           </button>
         </div>
 
         <div className="welcome-footer">
-          <p>当前支持的用户：yining · lijun · yizhuo</p>
+          <p>Supported Users: yining · lijun · yizhuo</p>
         </div>
       </div>
     </div>

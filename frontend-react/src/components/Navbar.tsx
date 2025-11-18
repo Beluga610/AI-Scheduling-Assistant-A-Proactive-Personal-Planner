@@ -5,34 +5,43 @@ import { Link, useNavigate } from 'react-router-dom';
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   
-  // TODO: Real implementation - check token presence
+  // TODO: Get real user info from Context/Apollo
   const isAuthenticated = !!localStorage.getItem('token'); 
+  const userName = "Queen"; // Mock user name
 
   const handleLogout = () => {
     console.log('Navbar: Logging out');
     localStorage.removeItem('token');
-    
-    // ✅ New: Clear chat history on logout
     localStorage.removeItem('chat_history');
-    
     window.location.href = '/login'; 
   };
 
   return (
     <nav>
-      <Link to="/"><strong>LLM Assistant</strong></Link>
-      <div style={{ flex: 1 }}></div> {/* Spacer */}
+      {/* Left: Logo Area */}
+      <Link to="/" className="nav-left">
+        <span role="img" aria-label="logo">💘</span>
+        <span>AI Dating Assistant</span>
+      </Link>
       
-      <Link to="/">Home</Link>
-      
-      {isAuthenticated ? (
-        <>
-          <Link to="/dashboard">Dashboard</Link>
-          <a href="#" onClick={handleLogout} style={{ cursor: 'pointer' }}>Logout</a>
-        </>
-      ) : (
-        <Link to="/login">Login</Link>
-      )}
+      {/* Right: User Actions */}
+      <div className="nav-right">
+        {isAuthenticated ? (
+          <>
+            {/* Static Avatar */}
+            <div className="nav-avatar" title={`Logged in as ${userName}`}>
+              {userName.charAt(0)}
+            </div>
+            
+            {/* Logout Button */}
+            <div onClick={handleLogout} className="nav-logout">
+              Logout
+            </div>
+          </>
+        ) : (
+          <Link to="/login" className="nav-logout">Login</Link>
+        )}
+      </div>
     </nav>
   );
 };

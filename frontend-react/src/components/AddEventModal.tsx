@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom"; 
 import { format } from "date-fns";
 
-// Define props interface
 interface AddEventModalProps {
   slotInfo: { start: Date; end: Date };
   onCancel: () => void;
@@ -11,22 +11,19 @@ interface AddEventModalProps {
 export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventModalProps) {
   const [title, setTitle] = useState("");
 
-  // Initialize state with formatted date strings for 'datetime-local' input (YYYY-MM-DDThh:mm)
+  // 初始化时间
   const [start, setStart] = useState(format(slotInfo.start, "yyyy-MM-dd'T'HH:mm"));
   const [end, setEnd] = useState(format(slotInfo.end, "yyyy-MM-dd'T'HH:mm"));
 
   const handleSave = () => {
     if (!title.trim()) return;
-
     const startDate = new Date(start);
     const endDate = new Date(end);
 
-    // Simple validation: End time must be after start time
     if (endDate <= startDate) {
       alert("End time must be later than start time.");
       return;
     }
-
     onSave({
       title,
       start: startDate.toISOString(),
@@ -34,7 +31,8 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
     });
   };
 
-  return (
+
+  return createPortal(
     <div className="modal-backdrop">
       <div className="modal">
         <h3 className="modal-title">Create New Event</h3>
@@ -45,7 +43,7 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g., Dinner with Jack at 8pm today"
+            placeholder="e.g., Dinner with Jack"
             autoFocus
           />
         </div>
@@ -54,7 +52,7 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
           <label>Start Time</label>
           <input
             type="datetime-local"
-            lang="en-US"
+            lang="en-US" 
             value={start}
             onChange={(e) => setStart(e.target.value)}
           />
@@ -83,6 +81,7 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

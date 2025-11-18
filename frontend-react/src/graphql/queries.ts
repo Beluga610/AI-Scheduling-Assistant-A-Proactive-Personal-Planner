@@ -111,14 +111,15 @@ export const DELETE_EVENT = gql`
 `;
 
 export const CHAT_WITH_AI = gql`
-  mutation ChatWithAI($prompt: String!) {
-    chatWithAI(prompt: $prompt) {
+  mutation ChatWithAI($prompt: String!, $history: [ChatMessageInput]) {
+    chatWithAI(prompt: $prompt, history: $history) {
       message
       latestEvents {
         id
         title
         start
         end
+        allDay
       }
     }
   }

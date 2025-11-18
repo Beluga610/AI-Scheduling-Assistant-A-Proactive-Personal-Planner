@@ -1,195 +1,182 @@
-/* --- General Calendar Container --- */
-/* Keep calendar slim, modern, with rounded corners */
-.calendar-wrapper {
-  /* height: 480px;  <-- Removed based on previous logic, relying on 80vh */
-  height: 80vh;      
-  width: 100%;
-  background: white;
-  border-radius: 16px; /* Increased radius to match UI */
-  overflow-y: auto;  
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  padding: 12px;
-}
+/* src/App.css */
 
-/* Slimmer time gutter */
-.rbc-time-gutter {
-  width: 50px !important; /* Slightly wider for readability */
-  font-size: 12px;
-  color: #888;
-}
-
-/* Compact timeslots */
-.rbc-timeslot-group {
-  min-height: 40px !important; 
-  border-bottom: 1px solid #f0f0f0;
-}
-
-/* Header styling */
-.rbc-header {
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px 0 !important;
-  background: #fff;
-  border-bottom: 2px solid #f6f8fb;
-  color: #444;
-}
-
-/* --- Event Card Styling (Matches specific Pink Theme) --- */
-.rbc-event {
-  border-radius: 6px;
-  padding: 4px 8px;
-  background: #ffe4ea;       /* Light Pink Background */
-  border: none;              /* Remove default border */
-  border-left: 4px solid #ff4f7a; /* Deep Pink Accent */
-  color: #333;
-  font-size: 13px;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(255, 79, 122, 0.1);
-}
-
-.rbc-event:hover {
-  background: #ffd1dc;
-}
-
-.rbc-event-label {
-  font-size: 11px;
-  opacity: 0.8;
-  margin-bottom: 2px;
-}
-
-/* Toolbar Buttons */
-.rbc-toolbar button {
-  border-radius: 8px;
-  background: white;
-  border: 1px solid #e0e0e0;
-  padding: 6px 12px;
-  margin: 0 4px;
-  color: #555;
-  transition: all 0.2s ease;
-}
-
-.rbc-toolbar button:hover, .rbc-toolbar button:active, .rbc-toolbar button.rbc-active {
+/* === 1. Global Reset & Fonts === */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
   background: #f6f8fb;
-  border-color: #ccc;
   color: #333;
-  box-shadow: none;
+  /* Prevent content from hiding behind fixed navbar */
+  padding-top: 70px; 
 }
 
-.rbc-toolbar-label {
-  font-weight: 700;
-  font-size: 18px;
-  color: #222;
-}
-
-/* --- Modal Styling (Modern & Clean) --- */
-.modal-backdrop {
+/* === 2. Fixed Navbar Styling === */
+nav {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* Slightly darker backdrop for focus */
-  backdrop-filter: blur(2px);     /* Blur effect */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  z-index: 1000; /* Ensure it stays on top */
+  box-sizing: border-box;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff4f7a; /* Theme Pink */
+  text-decoration: none;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffebf0;
+  color: #ff4f7a;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #ff4f7a;
 }
 
-.modal {
-  background: white;
-  padding: 28px;
-  width: 360px;
-  border-radius: 20px; /* Large rounded corners */
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  animation: modalFadeIn 0.2s ease-out;
-}
-
-@keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.modal-title {
-  margin: 0 0 8px 0;
-  font-size: 20px;
-  color: #333;
-  text-align: center;
-}
-
-.modal-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.modal label {
-  font-size: 13px;
-  font-weight: 600;
+.nav-logout {
   color: #666;
-  margin-left: 4px;
-}
-
-.modal input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
   font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box; /* Ensures padding doesn't affect width */
-}
-
-.modal input:focus {
-  border-color: #ff4f7a;
-}
-
-.modal input.input-disabled {
-  background-color: #f9f9f9;
-  color: #999;
-  border-color: #eee;
-}
-
-.modal-btn-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.modal-btn {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-logout:hover {
+  color: #ff4f7a;
+}
+
+/* === 3. App Layout Adjustment === */
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px; /* Adjusted widths */
+  /* Subtract Navbar height */
+  height: calc(100vh - 70px); 
+  overflow: hidden;
+}
+
+/* === 4. New Sidebar Styling === */
+.sidebar-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #444;
+  background: #f9f9f9;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.sidebar-input:focus {
+  background: white;
+  border-color: #ff4f7a;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 79, 122, 0.1);
+}
+
+/* Contact List & Accordion */
+.contact-group {
+  margin-bottom: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.contact-header {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #fff;
   transition: background 0.2s;
 }
 
-/* Secondary Button (Cancel) */
-.modal-btn.secondary {
-  background: #f0f0f0;
+.contact-header:hover {
+  background: #fcfcfc;
+}
+
+.contact-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
   color: #555;
 }
 
-.modal-btn.secondary:hover {
-  background: #e0e0e0;
+.contact-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
 }
 
-/* Primary Button (Create/Save) */
-.modal-btn.primary {
-  background: #ff4f7a; /* Theme Pink */
-  color: white;
+.contact-count {
+  font-size: 11px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
 }
 
-.modal-btn.primary:hover {
-  background: #e63e68;
+/* Events inside the accordion */
+.contact-events-list {
+  background: #fbfbfb;
+  border-top: 1px solid #f0f0f0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
-.modal-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.contact-event-item {
+  padding: 8px 12px 8px 46px; /* Indented to align with text */
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #eee;
+}
+
+.contact-event-item:last-child {
+  border-bottom: none;
+}
+
+.contact-event-date {
+  color: #999;
+  font-size: 11px;
+  margin-right: 6px;
 }

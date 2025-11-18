@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { format } from "date-fns";
 
-// Define props interface
 interface EditEventModalProps {
   event: { id: string; title: string; start: Date; end: Date };
   onCancel: () => void;
@@ -12,13 +12,11 @@ interface EditEventModalProps {
 export default function EditEventModal({ event, onCancel, onSave, onDelete }: EditEventModalProps) {
   const [title, setTitle] = useState(event.title);
 
-  // Initialize date inputs with format: "yyyy-MM-ddThh:mm"
   const [start, setStart] = useState(format(new Date(event.start), "yyyy-MM-dd'T'HH:mm"));
   const [end, setEnd] = useState(format(new Date(event.end), "yyyy-MM-dd'T'HH:mm"));
 
   const handleSave = () => {
     if (!title.trim()) return;
-
     const startDate = new Date(start);
     const endDate = new Date(end);
 
@@ -26,7 +24,6 @@ export default function EditEventModal({ event, onCancel, onSave, onDelete }: Ed
       alert("End time must be later than start time.");
       return;
     }
-
     onSave({
       id: event.id,
       title,
@@ -35,7 +32,8 @@ export default function EditEventModal({ event, onCancel, onSave, onDelete }: Ed
     });
   };
 
-  return (
+
+  return createPortal(
     <div className="modal-backdrop">
       <div className="modal">
         <h3 className="modal-title">Edit Event</h3>
@@ -79,7 +77,7 @@ export default function EditEventModal({ event, onCancel, onSave, onDelete }: Ed
             Delete
           </button>
           
-          <div style={{ flex: 1 }}></div> {/* Spacer */}
+          <div style={{ flex: 1 }}></div> 
 
           <button className="modal-btn secondary" onClick={onCancel}>
             Cancel
@@ -89,6 +87,7 @@ export default function EditEventModal({ event, onCancel, onSave, onDelete }: Ed
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
