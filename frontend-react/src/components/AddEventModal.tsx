@@ -54,6 +54,7 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
           <label>Start Time</label>
           <input
             type="datetime-local"
+            lang="en-US"
             value={start}
             onChange={(e) => setStart(e.target.value)}
           />
@@ -63,6 +64,7 @@ export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventMo
           <label>End Time</label>
           <input
             type="datetime-local"
+            lang="en-US"
             value={end}
             onChange={(e) => setEnd(e.target.value)}
           />

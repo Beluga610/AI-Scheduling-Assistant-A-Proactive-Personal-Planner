@@ -6,7 +6,8 @@ import {
   Views,
 } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
-import zhCN from "date-fns/locale/zh-CN";
+// Change locale to English
+import enUS from "date-fns/locale/en-US";
 
 import { useMutation } from "@apollo/client";
 import { CREATE_EVENT, UPDATE_EVENT, DELETE_EVENT, GET_ME_QUERY } from "../graphql/queries";
@@ -26,34 +27,35 @@ interface CalendarEvent {
   allDay?: boolean;
 }
 
-const locales = { "zh-CN": zhCN };
+// Setup the locales for the calendar
+const locales = { "en-US": enUS };
 
 const localizer = dateFnsLocalizer({
   format,
   parse,
-  startOfWeek: () => startOfWeek(new Date(), { locale: zhCN }),
+  startOfWeek: () => startOfWeek(new Date(), { locale: enUS }),
   getDay,
   locales,
 });
 
-/** 关键：兼容 ISO 字符串 & 时间戳字符串 */
+/** Key: Helper to handle both ISO strings & timestamp strings */
 const parseDate = (input: any) => {
   if (!input) return new Date();
 
-  // 已经是 Date
+  // Already a Date object
   if (input instanceof Date) return input;
 
-  // 数字字符串
+  // Numeric string (Timestamp)
   if (typeof input === "string" && /^\d+$/.test(input)) {
     return new Date(Number(input));
   }
 
-  // 普通 ISO 字符串
+  // Standard ISO string
   return new Date(input);
 };
 
 export default function CalendarView({ events }: { events: CalendarEvent[] }) {
-  /** 关键：这里修复了传入的事件格式 */
+  /** Key: Fix incoming event date format here */
   const formattedEvents = useMemo(() => {
     return events.map(ev => ({
       ...ev,
@@ -91,7 +93,8 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
         views={[Views.WEEK]}
         step={60}
         timeslots={1}
-        min={new Date(2024, 1, 1, 9, 0)}
+        // Note: You might want to adjust min/max based on needs
+        min={new Date(2024, 1, 1, 8, 0)} 
         max={new Date(2024, 1, 1, 23, 59)}
         onSelectSlot={(info) => setSlotInfo(info)}
         onSelectEvent={(event) => setSelectedEvent(event)}
