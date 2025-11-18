@@ -97,7 +97,7 @@ export const resolvers = {
             const token = jwt.sign(
                 { userId: res._id.toString(), email: res.email },
                 process.env.JWT_SECRET || 'mysecretkey123',
-                { expiresIn: '2h' }
+                { expiresIn: '30d' }
             );
 
             // Use helper for consistency
