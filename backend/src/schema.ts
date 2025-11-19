@@ -6,8 +6,9 @@ export const typeDefs = gql`
     id: ID!
     email: String!
     name: String
-    tasks: [Task]
-    calendarEvents: [CalendarEvent]
+    tasks: [Task] # 用户关联的任务
+    calendarEvents: [CalendarEvent] # 用户关联的日历事件
+    preferences: [String]!
   }
 
   type Task {
@@ -103,6 +104,8 @@ export const typeDefs = gql`
 
     "（可选）将一个任务同步到日历"
     syncTaskToCalendar(taskId: ID!): CalendarEvent
+
+    updatePreferences(preferences: [String]!): User
 
     "创建日历事件"
     createEvent(

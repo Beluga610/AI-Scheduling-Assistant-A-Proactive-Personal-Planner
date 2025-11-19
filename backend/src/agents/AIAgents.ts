@@ -1,8 +1,8 @@
-// src/agents/AIAgents.ts
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
 const apiKey = process.env.DEEPSEEK_API_KEY;
 if (!apiKey) { console.error("FATAL: DEEPSEEK_API_KEY not found!"); }
 const client = new OpenAI({
@@ -32,6 +32,13 @@ export async function processUserMessage(
     const now = new Date();
     const localTime = now.toString();
 
+    // 1. Prepare the Preferences Text
+    const prefsText = userPreferences.length > 0
+        ? userPreferences.map(p => `- ${p}`).join('\n')
+        : "- No specific preferences.";
+
+    // 2. The System Prompt
+    // ... inside processUserMessage ...
     const systemPrompt = `
     You are "Hitch," an elite AI Dating Strategist and Scheduler. 
     Current Time (Singapore): ${localTime}.

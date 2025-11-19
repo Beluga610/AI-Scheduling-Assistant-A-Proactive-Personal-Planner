@@ -20,8 +20,8 @@ const Navbar: React.FC = () => {
     <nav>
       {/* Left: Logo Area */}
       <Link to="/" className="nav-left">
-        <span role="img" aria-label="logo">💘</span>
-        <span>AI Dating Assistant</span>
+        <span role="img" aria-label="logo">💫</span>
+        <span>Personal Scheduling Assistant</span>
       </Link>
       
       {/* Right: User Actions */}
