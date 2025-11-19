@@ -1,58 +1,106 @@
+/* src/App.css */
+
+/* === 1. Global Reset === */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
   padding: 0;
   background: #f6f8fb;
-  color: #123;
+  color: #333;
 }
-.app {
-  padding: 16px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-.header {
+
+/* === 2. Fixed Navbar === */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
-}
-.card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-  margin-bottom: 12px;
-}
-button {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
+  padding: 0 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  z-index: 1000; /* Ensure it stays on top of content */
+  box-sizing: border-box;
 }
 
-/* === 三栏总布局：Navbar 下方三列 === */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff4f7a; /* Theme Pink */
+  text-decoration: none;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffebf0;
+  color: #ff4f7a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #ff4f7a;
+}
+
+.nav-logout {
+  color: #666;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.nav-logout:hover {
+  color: #ff4f7a;
+}
+
+/* === 3. Layout Containers (Fix for Overlap) === */
+
+/* The outer shell handles the top spacing for the fixed navbar */
+.app-shell {
+  padding-top: 70px; 
+  height: 100vh; 
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent double scrollbars */
+}
+
+/* The grid layout fills the remaining height */
 .app-layout {
   display: grid;
-  grid-template-columns: 240px 1fr 320px;  /* 左侧栏 / 主体 / AI 助手栏 */
-  height: calc(100vh - 60px);              /* 60px 是 Navbar 预估高度，可调整 */
+  grid-template-columns: 280px 1fr 340px;
+  height: 100%; 
   overflow: hidden;
 }
 
-/* === 左侧栏 === */
+/* === 4. Column Styles === */
 .layout-sidebar {
   background: #ffffff;
   border-right: 1px solid #e4e6eb;
   overflow-y: auto;
 }
 
-/* === 中间主区域（周视图） === */
 .layout-main {
   padding: 20px;
   overflow-y: auto;
   background: #f6f8fb; 
 }
 
-/* === 右侧 AI 面板 === */
 .layout-assistant {
   background: #ffffff;
   border-left: 1px solid #e4e6eb;
@@ -61,15 +109,9 @@ button {
   overflow-y: auto;
 }
 
-/* === Sidebar 结构 === */
+/* === 5. Sidebar Components === */
 .sidebar {
   padding: 20px;
-}
-
-.sidebar-header {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 24px;
 }
 
 .sidebar-section {
@@ -77,235 +119,396 @@ button {
 }
 
 .sidebar-section-title {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #999;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
+.sidebar-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #444;
+  background: #f9f9f9;
+  transition: all 0.2s;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.sidebar-input:focus {
+  background: white;
+  border-color: #ff4f7a;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 79, 122, 0.1);
+}
+
+/* Contact Group & Accordion */
 .sidebar-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-group {
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  transition: box-shadow 0.2s;
+}
+
+.contact-group:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.contact-header {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.contact-avatar-small {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f2f4f7;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.contact-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.contact-count {
+  font-size: 11px;
+  color: #888;
+  background: #f2f4f7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.contact-events-list {
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
-.sidebar-contact-item {
+.contact-event-item {
+  padding: 10px 12px 10px 50px;
+  font-size: 13px;
+  color: #555;
+  border-bottom: 1px solid #eee;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  cursor: pointer;
+  gap: 6px;
 }
 
-.sidebar-contact-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  color: white;
+.contact-event-item:last-child {
+  border-bottom: none;
+}
+
+.contact-event-date {
+  color: #ff4f7a;
+  font-weight: 600;
+  font-size: 12px;
+  min-width: 70px;
+}
+
+/* === 6. GLOBAL MODAL STYLES (Moved here to fix positioning) === */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-weight: bold;
+  z-index: 2000; /* Above Navbar (1000) */
 }
 
-.sidebar-add-contact-btn {
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #eee;
-  cursor: pointer;
-}
-
-/* === 右侧 AI panel === */
-.assistant-panel {
+.modal {
+  background: white;
+  padding: 28px;
+  width: 360px;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  padding: 20px;
+  gap: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  animation: modalFadeIn 0.2s ease-out;
 }
 
-.assistant-header h2 {
-  margin: 0;
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.assistant-subtitle {
-  margin-top: 4px;
-  font-size: 14px;
+.modal-title {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal label {
+  font-size: 13px;
+  font-weight: 600;
   color: #666;
+  margin-left: 4px;
 }
 
-/* 聊天内容区域 */
-.assistant-chat-history {
-  margin-top: 16px;
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* 聊天气泡 */
-.assistant-message {
+.modal input {
+  width: 100%;
   padding: 10px 12px;
-  margin-bottom: 10px;
-  width: fit-content;
-  max-width: 80%;
+  border: 1px solid #e0e0e0;
   border-radius: 10px;
   font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
-.assistant-message.bot {
-  background: #e8eef8;
+.modal input:focus {
+  border-color: #ff4f7a;
 }
 
-.assistant-message.user {
-  background: #d1f5d3;
-  margin-left: auto;
-}
-
-/* 输入区 */
-.assistant-input-area {
+.modal-btn-row {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 12px;
 }
 
-.assistant-input {
+.modal-btn {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.assistant-send-btn {
-  padding: 10px 16px;
-  border-radius: 8px;
-  background: #bbb;
   border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-/* Login Page */
+.modal-btn.secondary {
+  background: #f0f0f0;
+  color: #555;
+}
+.modal-btn.secondary:hover { background: #e0e0e0; }
+
+.modal-btn.primary {
+  background: #ff4f7a;
+  color: white;
+}
+.modal-btn.primary:hover { background: #e63e68; }
+
+/* --- Login Page Styles --- */
 .login-page-container {
-  height: 100vh;
+  height: 100vh; /* Full viewport height */
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f5f6fa;
+  background: #f6f8fb; /* Match app background */
+  
+  /* Fix for fixed navbar overlap if needed, though 100vh usually covers it */
+  margin-top: -70px; 
+  padding-top: 70px;
 }
 
 .login-card {
-  width: 350px;
-  padding: 24px;
-  border-radius: 12px;
+  width: 380px;
+  padding: 32px;
+  border-radius: 16px;
   background: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  text-align: center;
 }
 
 .login-title {
-  text-align: center;
-  margin: 0;
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #333;
 }
 
 .login-subtitle {
-  text-align: center;
+  margin: 0 0 24px 0;
   font-size: 14px;
   color: #666;
-  margin-bottom: 20px;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .login-input {
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  background: #f9f9f9;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.login-input:focus {
+  background: white;
+  border-color: #ff4f7a;
+  box-shadow: 0 0 0 3px rgba(255, 79, 122, 0.1);
 }
 
 .login-btn {
-  padding: 10px;
-  background: #ff8fa3;
+  padding: 12px;
+  background: #ff4f7a; /* Theme Pink */
   border: none;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.login-btn:hover {
+  background: #e63e68;
 }
 
 .login-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .login-error {
-  color: red;
-  font-size: 12px;
+  color: #ff4f7a;
+  font-size: 13px;
+  margin: 0;
+  text-align: left;
 }
 
 .login-hint {
-  margin-top: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
   font-size: 13px;
-  color: #666;
+  color: #888;
+  text-align: left;
 }
 
-/* ====== Home Page ====== */
+.login-hint p {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.login-hint ul {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+/* --- Home Page Styles --- */
 .welcome-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: #f7f8fc;
+  background: #f6f8fb;
+  
+  /* Fix for fixed navbar overlap */
+  margin-top: -70px; 
+  padding-top: 70px;
 }
 
 .welcome-card {
   background: white;
-  padding: 40px 32px;
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-  width: 420px;
+  padding: 48px 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  width: 450px;
   text-align: center;
 }
 
 .welcome-title {
   margin: 0;
-  font-size: 28px;
+  font-size: 32px;
+  color: #333;
+  letter-spacing: -0.5px;
 }
 
 .welcome-subtitle {
   color: #777;
-  margin-top: 8px;
-  margin-bottom: 32px;
-  font-size: 14px;
+  margin-top: 12px;
+  margin-bottom: 40px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .welcome-buttons {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .welcome-btn {
-  padding: 12px;
-  font-size: 15px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.welcome-btn:active {
+  transform: scale(0.98);
 }
 
 .welcome-btn.primary {
-  background: #ff8fa3;
+  background: #ff4f7a;
   color: white;
+  box-shadow: 0 4px 12px rgba(255, 79, 122, 0.3);
+}
+.welcome-btn.primary:hover {
+  background: #e63e68;
 }
 
 .welcome-btn.secondary {
-  background: #eee;
+  background: #f0f0f0;
   color: #999;
   cursor: not-allowed;
 }
 
 .welcome-footer {
-  margin-top: 20px;
+  margin-top: 32px;
   font-size: 13px;
-  color: #888;
+  color: #aaa;
 }

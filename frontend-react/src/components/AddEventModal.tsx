@@ -1,70 +1,87 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom"; 
+import { format } from "date-fns";
 
-
-function convertUTCToLocalInputString(dateStr: string | Date): string {
-    const date = new Date(dateStr);
-
-    const pad = (num: number)=> num.toString().padStart(2, '0');
-
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1); // 0-11
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-
-    // Returns "YYYY-MM-DDTHH:MM" format for the input
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+interface AddEventModalProps {
+  slotInfo: { start: Date; end: Date };
+  onCancel: () => void;
+  onSave: (data: { title: string; start: string; end: string }) => void;
 }
 
+export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventModalProps) {
+  const [title, setTitle] = useState("");
 
-export default function AddEventModal({ slotInfo, onCancel, onSave }) {
-    const [title, setTitle] = useState("");
+  // 初始化时间
+  const [start, setStart] = useState(format(slotInfo.start, "yyyy-MM-dd'T'HH:mm"));
+  const [end, setEnd] = useState(format(slotInfo.end, "yyyy-MM-dd'T'HH:mm"));
 
-    
-    const [startLocal, setStartLocal] = useState(
-        convertUTCToLocalInputString(slotInfo.start)
-    );
-    const [endLocal, setEndLocal] = useState(
-        convertUTCToLocalInputString(slotInfo.end)
-    );
+  const handleSave = () => {
+    if (!title.trim()) return;
+    const startDate = new Date(start);
+    const endDate = new Date(end);
 
-    return (
-        <div className="modal-backdrop">
-            <div className="modal">
-                <h3>创建事件</h3>
+    if (endDate <= startDate) {
+      alert("End time must be later than start time.");
+      return;
+    }
+    onSave({
+      title,
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+    });
+  };
 
-                <label>标题：</label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} />
 
-                <label>开始时间：</label>              
-                <input
-                    type="datetime-local"
-                    value={startLocal}
-                    onChange={(e) => setStartLocal(e.target.value)}
-                />
+  return createPortal(
+    <div className="modal-backdrop">
+      <div className="modal">
+        <h3 className="modal-title">Create New Event</h3>
 
-                <label>结束时间：</label>
-                <input
-                    type="datetime-local"
-                    value={endLocal}
-                    onChange={(e) => setEndLocal(e.target.value)}
-                />
-
-                <div className="modal-btn-row">
-                    <button onClick={onCancel}>取消</button>
-                    <button
-                        onClick={() =>
-                            onSave({
-                                title,
-                                start: new Date(startLocal).toISOString(),
-                                end: new Date(endLocal).toISOString(),     // Convert back to ISO on save
-                            })
-                        }
-                    >
-                        创建
-                    </button>
-                </div>
-            </div>
+        <div className="modal-field">
+          <label>Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g., Dinner with Jack"
+            autoFocus
+          />
         </div>
-    );
+
+        <div className="modal-field">
+          <label>Start Time</label>
+          <input
+            type="datetime-local"
+            lang="en-US" 
+            value={start}
+            onChange={(e) => setStart(e.target.value)}
+          />
+        </div>
+
+        <div className="modal-field">
+          <label>End Time</label>
+          <input
+            type="datetime-local"
+            lang="en-US"
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
+          />
+        </div>
+
+        <div className="modal-btn-row">
+          <button className="modal-btn secondary" onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            className="modal-btn primary"
+            onClick={handleSave}
+            disabled={!title.trim()}
+          >
+            Create
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 }

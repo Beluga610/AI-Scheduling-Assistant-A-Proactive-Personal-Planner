@@ -1,95 +1,182 @@
-/* 整体容器：让日历瘦长、现代、有圆角 */
-.calendar-wrapper {
-  /* height: 480px;  <-- 删除这一行，或者改大 */
-  height: 80vh;      /* ✅ 改为视窗高度的 80%，或者固定 800px */
-  width: 100%;
-  background: white;
-  border-radius: 10px;
-  overflow-y: auto;  /* ✅ 改为 auto，允许上下滚动 */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  padding: 4px;
-}
+/* src/App.css */
 
-/* 时间轴更窄（更干净） */
-.rbc-time-gutter {
-  width: 40px !important;
-  font-size: 12px;
-}
-
-/* 每一行更紧凑 */
-.rbc-timeslot-group {
-  min-height: 35px !important; /* 默认是 60px，太高了 */
-}
-
-/* 星期标题栏美化 */
-.rbc-header {
-  font-weight: 600;
-  font-size: 14px;
-  padding: 6px 0 !important;
-  background: #f8f9fa;
-  border-bottom: 1px solid #eee;
-}
-
-/* 事件卡片样式 —— 更像 Google Calendar */
-.rbc-event {
-  border-radius: 6px;
-  padding: 4px 6px;
-  background: #ffe4ea;       /* 浅粉 */
-  border-left: 4px solid #ff4f7a; /* 深粉 */
+/* === 1. Global Reset & Fonts === */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f6f8fb;
   color: #333;
-  font-size: 13px;
+  /* Prevent content from hiding behind fixed navbar */
+  padding-top: 70px; 
 }
 
-/* hover 效果 */
-.rbc-event:hover {
-  background: #ffd6e2;
-}
-
-/* 工具栏美化：上一周 / 下一周 按钮 */
-.rbc-toolbar button {
-  border-radius: 6px;
-  background: white;
-  border: 1px solid #ddd;
-  padding: 4px 10px;
-  margin: 0 3px;
-}
-
-.rbc-toolbar button:hover {
-  background: #fafafa;
-}
-
-.rbc-toolbar-label {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.modal-backdrop {
+/* === 2. Fixed Navbar Styling === */
+nav {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  z-index: 1000; /* Ensure it stays on top */
+  box-sizing: border-box;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff4f7a; /* Theme Pink */
+  text-decoration: none;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffebf0;
+  color: #ff4f7a;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #ff4f7a;
 }
 
-.modal {
-  background: white;
-  padding: 20px;
-  width: 320px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.nav-logout {
+  color: #666;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
-.modal-btn-row {
-  display: flex;
-  justify-content: space-between;
+.nav-logout:hover {
+  color: #ff4f7a;
 }
 
-.modal input {
+/* === 3. App Layout Adjustment === */
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px; /* Adjusted widths */
+  /* Subtract Navbar height */
+  height: calc(100vh - 70px); 
+  overflow: hidden;
+}
+
+/* === 4. New Sidebar Styling === */
+.sidebar-input {
   width: 100%;
-  padding: 6px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #444;
+  background: #f9f9f9;
+  transition: all 0.2s;
+  box-sizing: border-box;
 }
 
+.sidebar-input:focus {
+  background: white;
+  border-color: #ff4f7a;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 79, 122, 0.1);
+}
+
+/* Contact List & Accordion */
+.contact-group {
+  margin-bottom: 10px;
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.contact-header {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.contact-header:hover {
+  background: #fcfcfc;
+}
+
+.contact-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #555;
+}
+
+.contact-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.contact-count {
+  font-size: 11px;
+  color: #999;
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Events inside the accordion */
+.contact-events-list {
+  background: #fbfbfb;
+  border-top: 1px solid #f0f0f0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.contact-event-item {
+  padding: 8px 12px 8px 46px; /* Indented to align with text */
+  font-size: 12px;
+  color: #666;
+  border-bottom: 1px solid #eee;
+}
+
+.contact-event-item:last-child {
+  border-bottom: none;
+}
+
+.contact-event-date {
+  color: #999;
+  font-size: 11px;
+  margin-right: 6px;
+}

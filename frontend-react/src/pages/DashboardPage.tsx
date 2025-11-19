@@ -1,20 +1,14 @@
 // src/pages/DashboardPage.tsx
 
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ME_QUERY } from "../graphql/queries";
 import Navbar from "../components/Navbar";
-import TaskInput from "../components/TaskInput";
 import CalendarView from "../components/CalendarView";
 import AssistantPanel from "../components/AssistantPanel";
+import { format } from "date-fns";
 
-interface Task {
-  id: string;
-  title: string;
-  status?: string;
-  dueDate?: string;
-}
-
+// --- Interfaces ---
 interface CalendarEvent {
   id: string;
   title: string;
@@ -27,8 +21,7 @@ interface MeData {
   id: string;
   name: string;
   email: string;
-  // 后续可以在这里加 contacts / preferences 等
-  tasks: Task[];
+  tasks: any[];
   calendarEvents: CalendarEvent[];
 }
 
@@ -36,126 +29,133 @@ interface MeQueryResult {
   me: MeData;
 }
 
+// --- Helper ---
+const extractNameFromTitle = (title: string): string => {
+  const match = title.match(/with\s+([A-Z][a-zA-Z]*)/i);
+  return match ? match[1] : "Others";
+};
+
 /**
- * 左侧栏：联系人 / 本周目标 / 添加联系人
- * 目前是静态假数据，后面可以接 GraphQL
+ * Sidebar Component
  */
-const Sidebar: React.FC = () => {
-  // TODO: 未来从后端获取联系人列表
-  const contacts = [
-    { id: "1", name: "Leo", color: "#FF7BAC" },
-    { id: "2", name: "Jack", color: "#7BB1FF" },
-    { id: "3", name: "Alex", color: "#FFC36A" },
-  ];
+const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
+  const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
+  const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
+
+  const toggleContact = (name: string) => {
+    setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const contactsMap = useMemo(() => {
+    const map: Record<string, CalendarEvent[]> = {};
+    events.forEach(evt => {
+      const contactName = extractNameFromTitle(evt.title);
+      const normalizedName = contactName.charAt(0).toUpperCase() + contactName.slice(1);
+      if (!map[normalizedName]) map[normalizedName] = [];
+      map[normalizedName].push(evt);
+    });
+    return map;
+  }, [events]);
+
+  const contactNames = Object.keys(contactsMap).sort();
 
   return (
     <div className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo">AI 约会助手</div>
+      <div className="sidebar-section">
+        <div className="sidebar-section-title">WEEKLY GOAL</div>
+        <textarea 
+          className="sidebar-input"
+          rows={3}
+          value={weeklyGoal}
+          onChange={(e) => setWeeklyGoal(e.target.value)}
+          placeholder="Enter your goal for this week..."
+        />
       </div>
 
       <div className="sidebar-section">
-        <div className="sidebar-section-title">约会对象 · 常联系</div>
-        <ul className="sidebar-contact-list">
-          {contacts.map((c) => (
-            <li key={c.id} className="sidebar-contact-item">
-              <div
-                className="sidebar-contact-avatar"
-                style={{ backgroundColor: c.color }}
-              >
-                {c.name.charAt(0)}
+        <div className="sidebar-section-title">DATING CONTACTS</div>
+        {contactNames.length === 0 ? (
+          <p style={{color: '#999', fontSize: '13px', fontStyle: 'italic'}}>
+            No scheduled dates yet. <br/>Chat with AI to arrange one!
+          </p>
+        ) : (
+          <div className="sidebar-contact-list">
+            {contactNames.map(name => (
+              <div key={name} className="contact-group">
+                <div className="contact-header" onClick={() => toggleContact(name)}>
+                  <div className="contact-avatar-small">{name.charAt(0)}</div>
+                  <span className="contact-name">{name}</span>
+                  <span className="contact-count">{contactsMap[name].length}</span>
+                </div>
+                {expandedContacts[name] && (
+                  <ul className="contact-events-list">
+                    {contactsMap[name].map(evt => (
+                      <li key={evt.id} className="contact-event-item">
+                        <span className="contact-event-date">
+                          {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
+                        </span>
+                        {evt.title}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-              <span className="sidebar-contact-name">{c.name}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="sidebar-section">
-        <div className="sidebar-section-title">本周目标</div>
-        <div className="sidebar-goal-card">
-          {/* TODO: 从后端配置真正的目标数据 */}
-          <p>本周至少安排 3 次线下约会 ✨</p>
-        </div>
-      </div>
-
-      <div className="sidebar-footer">
-        <button className="sidebar-add-contact-btn">＋ 添加联系人</button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 /**
- * 中间区域：本周日历概览
- * 暂时还是用你现有的 CalendarView 作为占位，后续会把它重写成周视图。
+ * Middle Column: Week View (Cleaned)
  */
 const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return (
     <div className="week-overview">
-      <div className="week-overview-header">
-        <h2>本周概览</h2>
-        {/* TODO: 这里以后可以加 “本周范围/日期切换控件” */}
+      <div className="week-overview-header" style={{ marginBottom: '16px' }}>
+        <h2 style={{fontSize: '24px', margin: 0}}>Week Overview</h2>
       </div>
 
       <div className="week-overview-calendar">
-        {/* 目前先复用老的 CalendarView，后面我们会把它改成真正的周视图 */}
         <CalendarView events={events} />
-      </div>
-
-      <div className="week-overview-tasks">
-        <h3>拆分任务 / 约会生成入口</h3>
-        <TaskInput />
       </div>
     </div>
   );
 };
 
 /**
- * 仪表盘页面（核心页面）：
- * 顶部 Navbar + 下方三栏布局（Sidebar / WeekOverview / AssistantPanel）
+ * Main Page
  */
 export const DashboardPage: React.FC = () => {
   const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
     fetchPolicy: "cache-and-network",
   });
 
-  if (loading) return <p>正在加载用户数据...</p>;
-  if (error) return <p>错误: {error.message}</p>;
-  if (!data || !data.me) return <p>无法获取用户信息，请尝试重新登录。</p>;
+  if (loading) return <p style={{padding: 20}}>Loading...</p>;
+  if (error) return <p style={{padding: 20, color: 'red'}}>Error: {error.message}</p>;
+  if (!data || !data.me) return <p style={{padding: 20}}>Please login again.</p>;
 
   const { me } = data;
-  const tasks = me.tasks || [];
-
-  // 处理 events 数据，确保日期格式正确
-const events = (me.calendarEvents || []).map((evt: any) => {
-    // 打印一下，看看 start 是不是正常的 ISO 字符串
-    console.log("前端收到的事件:", evt); 
-    return {
-      ...evt,
-      start: evt.start, 
-      end: evt.end
-    };
-  });
+  
+  const events = (me.calendarEvents || []).map((evt: any) => ({
+    ...evt,
+    start: evt.start, 
+    end: evt.end
+  }));
 
   return (
     <div className="app-shell">
       <Navbar />
-
       <div className="app-layout">
-        {/* 左侧栏 */}
         <aside className="layout-sidebar">
-          <Sidebar />
+          <Sidebar events={events} />
         </aside>
-
-        {/* 中间：周视图 */}
         <main className="layout-main">
           <WeekOverview events={events} />
         </main>
-
-        {/* 右侧：AI 助手聊天 */}
         <section className="layout-assistant">
-          {/* ✅ 使用引入的真实组件 */}
           <AssistantPanel />
         </section>
       </div>

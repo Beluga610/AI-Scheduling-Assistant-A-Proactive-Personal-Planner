@@ -6,7 +6,7 @@ export const typeDefs = gql`
   # -----------------
   # 对象类型
   # -----------------
-  
+   
   type User {
     id: ID!
     email: String!
@@ -55,15 +55,21 @@ export const typeDefs = gql`
     name: String
   }
 
-input LoginInput {
-  email: String!
-  name: String
-}
-  
+  input LoginInput {
+    email: String!
+    name: String
+  }
+   
   input CreateTaskInput {
     title: String!
     description: String
     dueDate: String
+  }
+
+  # 👇 NEW: Input type for Chat History
+  input ChatMessageInput {
+    role: String!    # 'user' or 'assistant'
+    content: String! # The message text
   }
 
   # -----------------
@@ -133,14 +139,12 @@ input LoginInput {
     "删除日历事件"
     deleteEvent(id: ID!): Boolean
 
-    "AI 聊天窗口"
-    chatWithAI(prompt: String!): AIResponse
+    "AI 聊天窗口 (UPDATED: Now accepts history)"
+    chatWithAI(prompt: String!, history: [ChatMessageInput]): AIResponse
   }
     
   type AIResponse {
     message: String!                  # AI 给用户的自然语言回复
     latestEvents: [CalendarEvent]     # 返回最新的事件列表，用于前端自动刷新日历
   }
-
 `;
-
