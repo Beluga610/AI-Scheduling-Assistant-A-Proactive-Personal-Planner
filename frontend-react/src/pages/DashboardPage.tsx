@@ -7,7 +7,7 @@ import AssistantPanel from "../components/AssistantPanel";
 // 👇 Corrected Import Path (Singular 'PreferencePanel')
 import PreferencePanel from "../components/PreferencePanel";
 import { format } from "date-fns";
-import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
+import {stringToColor, stringToDarkColor } from "../utils/colorUtils";
 
 interface CalendarEvent {
   id: string;

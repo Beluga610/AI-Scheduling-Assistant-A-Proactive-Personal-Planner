@@ -32,8 +32,7 @@ interface AgentResult {
 export async function processUserMessage(
     prompt: string,
     history: any[] = [],
-    userPreferences: string[] = []
-    history: any[] = [],
+    userPreferences: string[] = [],
     dataContext: string = ""
 ): Promise<AgentResult> {
 
