@@ -24,7 +24,7 @@ interface MeData {
     id: string;
     name: string;
     email: string;
-    preferences: string[]; // Ensure this exists in your GraphQL query
+    preferences: string[];
     tasks: any[];
     calendarEvents: CalendarEvent[];
 }
@@ -34,7 +34,6 @@ interface MeQueryResult {
 }
 
 const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({ events, preferences }) => {
-  const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
     const toggleContact = (name: string) => {
@@ -60,17 +59,6 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
     return (
         <div className="sidebar">
             <PreferencePanel initialPreferences={preferences} />
-            <div className="sidebar-section">
-                <div className="sidebar-section-title">WEEKLY GOAL</div>
-                <textarea
-                    className="sidebar-input"
-                    rows={3}
-                    value={weeklyGoal}
-                    onChange={(e) => setWeeklyGoal(e.target.value)}
-                    placeholder="Enter your goal for this week..."
-                />
-            </div>
-
       <div className="sidebar-section">
         <div className="sidebar-section-title">DATING CONTACTS</div>
         {contactNames.length === 0 ? (
