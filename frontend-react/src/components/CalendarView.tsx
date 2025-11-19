@@ -23,6 +23,9 @@ interface CalendarEvent {
   start: string | number | Date;
   end: string | number | Date;
   allDay?: boolean;
+  contactName?: string;
+  location?: string;
+  vibe?: string;
 }
 
 const locales = { "en-US": enUS };
@@ -42,6 +45,24 @@ const parseDate = (input: any) => {
     return new Date(Number(input));
   }
   return new Date(input);
+};
+
+const CustomEvent = ({ event }: { event: CalendarEvent }) => {
+  return (
+    <div style={{ lineHeight: '1.3', overflow: 'hidden' }}>
+      <div style={{ fontWeight: 600, fontSize: '13px' }}>{event.title}</div>
+      {event.location && (
+        <div style={{ fontSize: '11px', marginTop: '2px', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '2px' }}>
+          📍 {event.location}
+        </div>
+      )}
+      {event.vibe && (
+        <div style={{ fontSize: '11px', marginTop: '1px', fontStyle: 'italic', opacity: 0.8 }}>
+          ✨ {event.vibe}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default function CalendarView({ events }: { events: CalendarEvent[] }) {
@@ -66,14 +87,14 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
   const [slotInfo, setSlotInfo] = useState<any>(null);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const eventStyleGetter = (event: CalendarEvent) => {
-    const name = extractNameFromTitle(event.title);
+    const name = event.contactName ||extractNameFromTitle(event.title);
     const borderColor = stringToDarkColor(name);
 
     return {
       style: {
         backgroundColor: '#FFFFFF',
         color: '#333', 
-        borderLeft: `10px solid ${borderColor}`, 
+        borderLeft: `6px solid ${borderColor}`, 
         borderTop: 'none',
         borderRight: 'none',
         borderBottom: 'none',
@@ -103,7 +124,6 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
         localizer={localizer}
         events={formattedEvents}
         selectable={true}
-
         defaultView={Views.WEEK}
         views={[Views.WEEK]}
         step={60}
@@ -113,6 +133,7 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
         onSelectSlot={handleSelectSlot}
         onSelectEvent={handleSelectEvent}
         eventPropGetter={eventStyleGetter}
+        components={{event: CustomEvent}}
       />
 
       {slotInfo && (
@@ -135,8 +156,18 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
         <EditEventModal
           event={selectedEvent}
           onCancel={() => setSelectedEvent(null)}
-          onSave={async ({ id, title, start, end }) => {
-            await updateEvent({ variables: { id, title, start, end } });
+          onSave={async ({ id, title, start, end, contactName, location, vibe }) => {
+            await updateEvent({ 
+              variables: { 
+                id, 
+                title, 
+                start, 
+                end,
+                contactName,
+                location,
+                vibe
+              } 
+            });
             setSelectedEvent(null);
           }}
           onDelete={async (id) => {

@@ -1,36 +1,34 @@
 // src/schema.ts
 import { gql } from 'graphql-tag';
 
-// 定义 GraphQL Schema
 export const typeDefs = gql`
-  # -----------------
-  # 对象类型
-  # -----------------
-   
   type User {
     id: ID!
     email: String!
     name: String
-    tasks: [Task] # 用户关联的任务
-    calendarEvents: [CalendarEvent] # 用户关联的日历事件
+    tasks: [Task]
+    calendarEvents: [CalendarEvent]
   }
 
   type Task {
     id: ID!
     title: String!
     description: String
-    dueDate: String # ISO 8601 日期字符串
-    status: TaskStatus! # 任务状态
+    dueDate: String
+    status: TaskStatus!
     owner: User!
   }
 
   type CalendarEvent {
     id: ID!
     title: String!
-    start: String! # ISO 8601 日期字符串
-    end: String! # ISO 8601 日期字符串
+    start: String!
+    end: String!
     allDay: Boolean
-    sourceTask: Task # 关联的原始任务
+    sourceTask: Task
+    contactName: String
+    location: String
+    vibe: String
   }
 
   enum TaskStatus {
@@ -39,15 +37,10 @@ export const typeDefs = gql`
     DONE
   }
 
-  # 认证载荷，用于登录和注册后返回
   type AuthPayload {
     token: String!
     user: User!
   }
-
-  # -----------------
-  # 输入类型
-  # -----------------
 
   input RegisterInput {
     email: String!
@@ -66,15 +59,11 @@ export const typeDefs = gql`
     dueDate: String
   }
 
-  # 👇 NEW: Input type for Chat History
   input ChatMessageInput {
     role: String!    # 'user' or 'assistant'
     content: String! # The message text
   }
 
-  # -----------------
-  # 查询 (Queries)
-  # -----------------
 
   type Query {
     "健康检查端点"
@@ -99,10 +88,6 @@ export const typeDefs = gql`
     events(ownerId: ID): [CalendarEvent]
   }
 
-  # -----------------
-  # 变更 (Mutations)
-  # -----------------
-
   type Mutation {
     "用户注册"
     register(input: RegisterInput!): AuthPayload
@@ -125,6 +110,9 @@ export const typeDefs = gql`
       start: String!
       end: String!
       allDay: Boolean
+      contactName: String
+      location: String
+      vibe: String
     ): CalendarEvent
 
     "更新日历事件"

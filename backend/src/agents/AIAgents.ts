@@ -10,7 +10,6 @@ const client = new OpenAI({
     apiKey: apiKey || 'sk-invalid-key',
 });
 
-// --- UPDATE 1: Interface needs to handle tool calls ---
 interface AgentResult {
     intent: 'chat' | 'create_event' | 'call_tool';
     replyMessage: string;
@@ -22,18 +21,16 @@ interface AgentResult {
     }[];
     tool_name?: string; 
     parameters?: any; 
-
-// --- UPDATE 2: Function signature must accept history ---
+}
 export async function processUserMessage(
     prompt: string,
-    history: any[] = [] // Pass in the conversation history
+    history: any[] = []
 ): Promise<AgentResult> {
 
-    console.log("🤖 AI received instruction:", prompt);
+    console.log("AI received instruction:", prompt);
     const now = new Date();
     const localTime = now.toString();
 
-    // --- UPDATE 3: The System Prompt must define tools ---
     const systemPrompt = `
     You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
     Current time is: ${localTime}.
@@ -71,20 +68,35 @@ export async function processUserMessage(
     # OUTPUT FORMAT
     -   If you need to call a tool, return ONLY JSON:
         { "intent": "call_tool", "tool_name": "get_calendar_events", "parameters": { "start": "...", "end": "..." } }
-    -   If you have enough information (or have received tool results), return a final JSON:
-        { "intent": "chat" | "create_event", "replyMessage": "...", "events": [...] }
+    -   If you have received tool results, return a final JSON:
+        { "intent": "chat", "replyMessage": "...", "events": [...] }
+    - If you have enough information to book, return:
+      { 
+        "intent": "create_event", 
+        "replyMessage": "I've scheduled the date...", 
+        "events": [
+          {
+            "title": "String (e.g. 'Dinner with Jack')",
+            "start": "ISO8601",
+            "end": "ISO8601",
+            "allDay": false,
+            "contactName": "String (Extracted Name)",
+            "location": "String (Optional)",  
+            "vibe": "String (Optional)"          
+          }
+        ]
+      }
   `;
 
-    // --- UPDATE 4: Build the message history ---
     const messages: any[] = [
         { role: "system", content: systemPrompt }
     ];
-    messages.push(...history); // Add all previous turns
-    messages.push({ role: "user", content: prompt }); // Add the new prompt
+    messages.push(...history);
+    messages.push({ role: "user", content: prompt });
 
     try {
         const completion = await client.chat.completions.create({
-            messages: messages, // Use the full message list
+            messages: messages,
             model: "deepseek-chat",
             temperature: 0.1,
             response_format: { type: "json_object" }
@@ -93,14 +105,13 @@ export async function processUserMessage(
         const content = completion.choices[0].message.content;
         if (!content) throw new Error("Empty response");
 
-        console.log("🤖 AI Raw JSON Response:", content);
+        console.log("AI Raw JSON Response:", content);
         const result = JSON.parse(content);
 
-        // --- UPDATE 5: Handle the 'call_tool' intent ---
         if (result.intent === 'call_tool') {
             return {
                 intent: 'call_tool',
-                replyMessage: "AI is requesting data...", // for logging
+                replyMessage: "AI is requesting data...",
                 tool_name: result.tool_name,
                 parameters: result.parameters,
             };
@@ -114,7 +125,10 @@ export async function processUserMessage(
                     title: e.title,
                     start: new Date(e.start),
                     end: new Date(e.end),
-                    allDay: e.allDay || false
+                    allDay: e.allDay || false,
+                    contactName: e.contactName || null,
+                    location: e.location || null,
+                    vibe: e.vibe || "General"
                 }))
             };
         }
@@ -124,10 +138,10 @@ export async function processUserMessage(
         };
 
     } catch (error) {
-        console.error("❌ LLM Call Failed:", error);
+        console.error("LLM Call Failed:", error);
         return {
             intent: 'chat',
-            replyMessage: "Sorry, I'm having trouble connecting to my brain. Please check the backend logs."
+            replyMessage: "Sorry, I'm busy with another guy who need more help. I will come back to you later."
         };
     }
 }

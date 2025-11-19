@@ -15,6 +15,9 @@ interface CalendarEvent {
   start: string;
   end: string;
   allDay?: boolean;
+  contactName?: string;
+  location?: string;
+  vibe?: string;
 }
 
 interface MeData {
@@ -40,8 +43,11 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   const contactsMap = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
     events.forEach(evt => {
-      const contactName = extractNameFromTitle(evt.title);
-      const normalizedName = contactName.charAt(0).toUpperCase() + contactName.slice(1);
+      let rawName = evt.contactName;
+      if (!rawName) {
+        rawName = extractNameFromTitle(evt.title);
+      }
+      const normalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
       if (!map[normalizedName]) map[normalizedName] = [];
       map[normalizedName].push(evt);
     });
@@ -97,7 +103,14 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
                           >
                             {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
                           </span>
-                          {evt.title}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span>{evt.title}</span>
+                              {evt.location && (
+                                <span style={{ fontSize: '10px', color: '#999' }}>
+                                  📍 {evt.location}
+                                </span>
+                              )}
+                          </div>
                         </li>
                       ))}
                     </ul>

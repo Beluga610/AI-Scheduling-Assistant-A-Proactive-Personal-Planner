@@ -77,29 +77,68 @@ export const GET_ME_QUERY = gql`
         start
         end
         allDay
+        contactName
+        location
+        vibe
       }
     }
   }
 `;
 
 export const CREATE_EVENT = gql`
-  mutation CreateEvent($title: String!, $start: String!, $end: String!) {
-    createEvent(title: $title, start: $start, end: $end) {
+  mutation CreateEvent(
+    $title: String!
+    $start: String!
+    $end: String!
+    $contactName: String
+    $location: String
+    $vibe: String
+  ) {
+    createEvent(
+      title: $title
+      start: $start
+      end: $end
+      contactName: $contactName
+      location: $location
+      vibe: $vibe
+    ) {
       id
       title
       start
       end
+      contactName
+      location
+      vibe
     }
   }
 `;
 
 export const UPDATE_EVENT = gql`
-  mutation UpdateEvent($id: ID!, $title: String, $start: String, $end: String) {
-    updateEvent(id: $id, title: $title, start: $start, end: $end) {
+  mutation UpdateEvent(
+    $id: ID!
+    $title: String
+    $start: String
+    $end: String
+    $contactName: String
+    $location: String
+    $vibe: String
+  ) {
+    updateEvent(
+      id: $id
+      title: $title
+      start: $start
+      end: $end
+      contactName: $contactName
+      location: $location
+      vibe: $vibe
+    ) {
       id
       title
       start
       end
+      contactName
+      location
+      vibe
     }
   }
 `;
@@ -120,6 +159,9 @@ export const CHAT_WITH_AI = gql`
         start
         end
         allDay
+        contactName
+        location
+        vibe
       }
     }
   }
