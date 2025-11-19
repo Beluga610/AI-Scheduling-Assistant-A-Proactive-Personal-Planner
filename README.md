@@ -1,3 +1,17 @@
+# AI Scheduling Assistant: Your Proactive Personal Planner
+## Personal Planner knowing your preferences and helps to track your relatoinships!
+An intelligent tool designed to eliminate the friction of planning and scheduling your week. It can go beyond simple calendar by offering true personalization and visualize your weekly activities!
+
+This assistant acts as your dedicated planner, using large language models to arrange your activities based on two core data sets: your current timetable (existing events) and your unique personal preferences (custom rules). Simply ask the assistant to schedule an activity, and it will automatically find the optimal slot, ensuring no clashes, and your habits and rules (like "No gym within one hour of meals") are respected.
+
+Worry not—the system is designed for flexibility, not frustration. If the AI suggests there is a conflict based on your rules, you remain in complete control. Just tell the assistant you insist on the specific time, and it will bypass your preference and book the slot for you. Plan and schedule easily, knowing the AI always works according to your priorities!
+
+The app also goes beyond simple time management into relationship tracking.
+The Dating Contacts panel transforms your calendar from a list of tasks into a tool for relationship management. Instead of just seeing an event named "Dinner," this feature automatically parses your schedule to show you how you are allocating your time with specific individuals.
+
+
+
+
 ## 📁 项目结构
 
 - `.env` — 存储秘密和环境变量 (本地)<br>
@@ -112,4 +126,7 @@ npm run dev
 
 在仪表盘中，输入任务（例如 "下周完成报告"）并点击 "AI 智能拆分"。
 
+
 检查浏览器控制台和 Node.js 终端的 console.log，查看模拟的数据流和 TODO 标记。
+
+
