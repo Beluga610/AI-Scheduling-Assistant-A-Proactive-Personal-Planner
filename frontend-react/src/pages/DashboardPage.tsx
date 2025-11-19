@@ -4,10 +4,9 @@ import { GET_ME_QUERY } from "../graphql/queries";
 import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import AssistantPanel from "../components/AssistantPanel";
-// 👇 Corrected Import Path (Singular 'PreferencePanel')
 import PreferencePanel from "../components/PreferencePanel";
-import { format } from "date-fns";
 import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
+import { format, differenceInCalendarDays, isBefore, isAfter } from "date-fns";
 
 interface CalendarEvent {
   id: string;
@@ -36,10 +35,9 @@ interface MeQueryResult {
 const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({ events, preferences }) => {
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
-    const toggleContact = (name: string) => {
-        setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
-    };
-
+  const toggleContact = (name: string) => {
+      setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
+  };
   const contactsMap = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
     events.forEach(evt => {
@@ -54,11 +52,37 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
     return map;
   }, [events]);
 
-    const contactNames = Object.keys(contactsMap).sort();
+  const contactNames = Object.keys(contactsMap).sort();
+  const getRelationshipStats = (contactEvents: CalendarEvent[]) => {
+    const now = new Date();
+    const pastEvents = contactEvents
+      .filter(e => isBefore(new Date(Number(e.end) || e.end), now))
+      .sort((a, b) => new Date(Number(b.end) || b.end).getTime() - new Date(Number(a.end) || a.end).getTime());
+    const futureEvents = contactEvents
+      .filter(e => isAfter(new Date(Number(e.start) || e.start), now))
+      .sort((a, b) => new Date(Number(a.start) || a.start).getTime() - new Date(Number(b.start) || b.start).getTime());
+    const lastEvent = pastEvents[0];
+    const nextEvent = futureEvents[0];
+    let lastText = "None";
+    let nextText = "None";
+    let alertLevel = 0; 
+    if (lastEvent) {
+      const daysAgo = differenceInCalendarDays(now, new Date(Number(lastEvent.end) || lastEvent.end));
+      lastText = daysAgo === 0 ? "Today" : `${daysAgo}d ago`;
+      if (daysAgo > 14) alertLevel = 1; 
+    }
+    if (nextEvent) {
+      const nextDate = new Date(Number(nextEvent.start) || nextEvent.start);
+      const diff = differenceInCalendarDays(nextDate, now);
+      nextText = diff < 7 ? format(nextDate, "EEE") : format(nextDate, "MMM d");
+    }
+    return { lastText, nextText, alertLevel };
+  };
 
-    return (
-        <div className="sidebar">
-            <PreferencePanel initialPreferences={preferences} />
+  return (
+    <div className="sidebar">
+      <PreferencePanel initialPreferences={preferences} />
+      
       <div className="sidebar-section">
         <div className="sidebar-section-title">DATING CONTACTS</div>
         {contactNames.length === 0 ? (
@@ -70,22 +94,37 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
             {contactNames.map(name => {
               const bgColor = stringToColor(name);
               const textColor = stringToDarkColor(name);
+              const contactEvents = contactsMap[name];
+              const { lastText, nextText, alertLevel } = getRelationshipStats(contactEvents);
+
               return (
                 <div key={name} className="contact-group">
-                  <div className="contact-header" onClick={() => toggleContact(name)}>
+                  <div className="contact-header" onClick={() => toggleContact(name)} style={{ alignItems: 'flex-start' }}>
                     <div 
                       className="contact-avatar-small"
-                      style={{ backgroundColor: bgColor, color: textColor }}
+                      style={{ backgroundColor: bgColor, color: textColor, marginTop: '2px' }}
                     >
                       {name.charAt(0)}
                     </div>
-                    <span className="contact-name">{name}</span>
-                    <span className="contact-count">{contactsMap[name].length}</span>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span className="contact-name" style={{ fontWeight: 600 }}>{name}</span>
+                        <span className="contact-count">{contactEvents.length}</span>
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#888', display: 'flex', gap: '8px', marginTop: '2px' }}>
+                        <span style={{ color: alertLevel > 0 ? '#e57373' : '#888' }}>
+                          Last: <b>{lastText}</b>
+                        </span>
+                        <span>
+                           Next: <b style={{ color: nextText !== 'None' ? '#4caf50' : '#ccc' }}>{nextText}</b>
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   
                   {expandedContacts[name] && (
                     <ul className="contact-events-list">
-                      {contactsMap[name].map(evt => (
+                      {contactEvents.map(evt => (
                         <li key={evt.id} className="contact-event-item">
                           <span 
                             className="contact-event-date"
@@ -93,13 +132,13 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
                           >
                             {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
                           </span>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                              <span>{evt.title}</span>
-                              {evt.location && (
-                                <span style={{ fontSize: '10px', color: '#999' }}>
-                                  📍 {evt.location}
-                                </span>
-                              )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                            <span>{evt.title}</span>
+                            {evt.location && (
+                               <span style={{ fontSize: '10px', color: '#999' }}>
+                                 📍 {evt.location}
+                               </span>
+                            )}
                           </div>
                         </li>
                       ))}
@@ -131,7 +170,7 @@ const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
 
 export const DashboardPage: React.FC = () => {
     const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
-        fetchPolicy: "cache-and-network", // Ensures UI updates after mutations
+        fetchPolicy: "cache-and-network", 
     });
 
     if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
@@ -140,7 +179,6 @@ export const DashboardPage: React.FC = () => {
 
     const { me } = data;
 
-    // Safety check for calendar events
     const events = (me.calendarEvents || []).map((evt: any) => ({
         ...evt,
         start: evt.start,
