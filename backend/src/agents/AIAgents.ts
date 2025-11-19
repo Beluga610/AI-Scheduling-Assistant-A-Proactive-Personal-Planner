@@ -1,11 +1,10 @@
 // src/agents/AIAgents.ts
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
-// ... (other imports) ...
 
 dotenv.config();
 const apiKey = process.env.DEEPSEEK_API_KEY;
-if (!apiKey) { console.error("❌ FATAL: DEEPSEEK_API_KEY not found!"); }
+if (!apiKey) { console.error("FATAL: DEEPSEEK_API_KEY not found!"); }
 const client = new OpenAI({
     baseURL: 'https://api.deepseek.com',
     apiKey: apiKey || 'sk-invalid-key',
@@ -13,7 +12,7 @@ const client = new OpenAI({
 
 // --- UPDATE 1: Interface needs to handle tool calls ---
 interface AgentResult {
-    intent: 'chat' | 'create_event' | 'call_tool'; // Add 'call_tool'
+    intent: 'chat' | 'create_event' | 'call_tool';
     replyMessage: string;
     events?: {
         title: string;
@@ -21,9 +20,8 @@ interface AgentResult {
         end: Date;
         allDay: boolean;
     }[];
-    tool_name?: string; // Add tool_name
-    parameters?: any;   // Add parameters
-}
+    tool_name?: string; 
+    parameters?: any; 
 
 // --- UPDATE 2: Function signature must accept history ---
 export async function processUserMessage(
@@ -36,8 +34,6 @@ export async function processUserMessage(
     const localTime = now.toString();
 
     // --- UPDATE 3: The System Prompt must define tools ---
-    // ... inside processUserMessage ...
-
     const systemPrompt = `
     You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
     Current time is: ${localTime}.

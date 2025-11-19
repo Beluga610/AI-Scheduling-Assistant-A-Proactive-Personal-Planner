@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import AssistantPanel from "../components/AssistantPanel";
 import { format } from "date-fns";
+import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
 
 // --- Interfaces ---
 interface CalendarEvent {
@@ -29,12 +30,12 @@ interface MeQueryResult {
   me: MeData;
 }
 
-// --- Helper ---
+/* --- Helper ---
 const extractNameFromTitle = (title: string): string => {
   const match = title.match(/with\s+([A-Z][a-zA-Z]*)/i);
   return match ? match[1] : "Others";
 };
-
+*/
 /**
  * Sidebar Component
  */
@@ -80,27 +81,40 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
           </p>
         ) : (
           <div className="sidebar-contact-list">
-            {contactNames.map(name => (
-              <div key={name} className="contact-group">
-                <div className="contact-header" onClick={() => toggleContact(name)}>
-                  <div className="contact-avatar-small">{name.charAt(0)}</div>
-                  <span className="contact-name">{name}</span>
-                  <span className="contact-count">{contactsMap[name].length}</span>
+            {contactNames.map(name => {
+              const bgColor = stringToColor(name);
+              const textColor = stringToDarkColor(name);
+              return (
+                <div key={name} className="contact-group">
+                  <div className="contact-header" onClick={() => toggleContact(name)}>
+                    <div 
+                      className="contact-avatar-small"
+                      style={{ backgroundColor: bgColor, color: textColor }}
+                    >
+                      {name.charAt(0)}
+                    </div>
+                    <span className="contact-name">{name}</span>
+                    <span className="contact-count">{contactsMap[name].length}</span>
+                  </div>
+                  
+                  {expandedContacts[name] && (
+                    <ul className="contact-events-list">
+                      {contactsMap[name].map(evt => (
+                        <li key={evt.id} className="contact-event-item">
+                          <span 
+                            className="contact-event-date"
+                            style={{ color: textColor }}
+                          >
+                            {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
+                          </span>
+                          {evt.title}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                {expandedContacts[name] && (
-                  <ul className="contact-events-list">
-                    {contactsMap[name].map(evt => (
-                      <li key={evt.id} className="contact-event-item">
-                        <span className="contact-event-date">
-                          {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
-                        </span>
-                        {evt.title}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

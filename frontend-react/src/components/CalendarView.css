@@ -1,17 +1,13 @@
 /* src/App.css */
-
-/* === 1. Global Reset & Fonts === */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
   padding: 0;
   background: #f6f8fb;
   color: #333;
-  /* Prevent content from hiding behind fixed navbar */
   padding-top: 70px; 
 }
 
-/* === 2. Fixed Navbar Styling === */
 nav {
   position: fixed;
   top: 0;
@@ -24,7 +20,7 @@ nav {
   justify-content: space-between;
   padding: 0 24px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  z-index: 1000; /* Ensure it stays on top */
+  z-index: 1000;
   box-sizing: border-box;
 }
 
@@ -34,7 +30,7 @@ nav {
   gap: 8px;
   font-size: 20px;
   font-weight: 700;
-  color: #ff4f7a; /* Theme Pink */
+  color: #ff4f7a; 
   text-decoration: none;
 }
 
@@ -72,16 +68,13 @@ nav {
   color: #ff4f7a;
 }
 
-/* === 3. App Layout Adjustment === */
 .app-layout {
   display: grid;
-  grid-template-columns: 280px 1fr 340px; /* Adjusted widths */
-  /* Subtract Navbar height */
+  grid-template-columns: 280px 1fr 340px;
   height: calc(100vh - 70px); 
   overflow: hidden;
 }
 
-/* === 4. New Sidebar Styling === */
 .sidebar-input {
   width: 100%;
   padding: 10px;
@@ -102,7 +95,6 @@ nav {
   box-shadow: 0 0 0 3px rgba(255, 79, 122, 0.1);
 }
 
-/* Contact List & Accordion */
 .contact-group {
   margin-bottom: 10px;
   border: 1px solid #f0f0f0;
@@ -153,7 +145,6 @@ nav {
   border-radius: 10px;
 }
 
-/* Events inside the accordion */
 .contact-events-list {
   background: #fbfbfb;
   border-top: 1px solid #f0f0f0;
@@ -165,7 +156,7 @@ nav {
 }
 
 .contact-event-item {
-  padding: 8px 12px 8px 46px; /* Indented to align with text */
+  padding: 8px 12px 8px 46px; 
   font-size: 12px;
   color: #666;
   border-bottom: 1px solid #eee;
@@ -179,4 +170,32 @@ nav {
   color: #999;
   font-size: 11px;
   margin-right: 6px;
+}
+
+.rbc-event {
+  background-color: transparent !important;
+  padding: 2px 5px !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.rbc-event.rbc-selected {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 2px #333;
+}
+
+.rbc-event-label {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.rbc-event-content {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.rbc-event:focus {
+  outline: none;
 }
