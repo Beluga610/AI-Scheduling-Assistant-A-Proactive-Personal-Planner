@@ -1,11 +1,11 @@
-// src/pages/DashboardPage.tsx
-
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ME_QUERY } from "../graphql/queries";
 import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import AssistantPanel from "../components/AssistantPanel";
+// 👇 Corrected Import Path (Singular 'PreferencePanel')
+import PreferencePanel from "../components/PreferencePanel";
 import { format } from "date-fns";
 import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
 
@@ -21,24 +21,34 @@ interface CalendarEvent {
 }
 
 interface MeData {
-  id: string;
-  name: string;
-  email: string;
-  tasks: any[];
-  calendarEvents: CalendarEvent[];
+    id: string;
+    name: string;
+    email: string;
+    preferences: string[]; // Ensure this exists in your GraphQL query
+    tasks: any[];
+    calendarEvents: CalendarEvent[];
 }
 
 interface MeQueryResult {
-  me: MeData;
+    me: MeData;
 }
 
-const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
-  const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
-  const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
+// --- Helper ---
+const extractNameFromTitle = (title: string): string => {
+    const match = title.match(/with\s+([A-Z][a-zA-Z]*)/i);
+    return match ? match[1] : "Others";
+};
 
-  const toggleContact = (name: string) => {
-    setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
-  };
+/**
+ * Sidebar Component
+ */
+const Sidebar: React.FC<{ events: CalendarEvent[], preferences: string[] }> = ({ events, preferences }) => {
+    const [weeklyGoal, setWeeklyGoal] = useState("Spend more time with friends this week. ✨");
+    const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
+
+    const toggleContact = (name: string) => {
+        setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
+    };
 
   const contactsMap = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
@@ -54,20 +64,24 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
     return map;
   }, [events]);
 
-  const contactNames = Object.keys(contactsMap).sort();
+    const contactNames = Object.keys(contactsMap).sort();
 
-  return (
-    <div className="sidebar">
-      <div className="sidebar-section">
-        <div className="sidebar-section-title">WEEKLY GOAL</div>
-        <textarea 
-          className="sidebar-input"
-          rows={3}
-          value={weeklyGoal}
-          onChange={(e) => setWeeklyGoal(e.target.value)}
-          placeholder="Enter your goal for this week..."
-        />
-      </div>
+    return (
+        <div className="sidebar">
+            {/* --- 1. PREFERENCES PANEL --- */}
+            <PreferencePanel initialPreferences={preferences} />
+
+            {/* --- 2. WEEKLY GOAL --- */}
+            <div className="sidebar-section">
+                <div className="sidebar-section-title">WEEKLY GOAL</div>
+                <textarea
+                    className="sidebar-input"
+                    rows={3}
+                    value={weeklyGoal}
+                    onChange={(e) => setWeeklyGoal(e.target.value)}
+                    placeholder="Enter your goal for this week..."
+                />
+            </div>
 
       <div className="sidebar-section">
         <div className="sidebar-section-title">DATING CONTACTS</div>
@@ -125,51 +139,56 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   );
 };
 
+/**
+ * Middle Column: Week View
+ */
 const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
-  return (
-    <div className="week-overview">
-      <div className="week-overview-header" style={{ marginBottom: '16px' }}>
-        <h2 style={{fontSize: '24px', margin: 0}}>Week Overview</h2>
-      </div>
+    return (
+        <div className="week-overview">
+            <div className="week-overview-header" style={{ marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '24px', margin: 0 }}>Week Overview</h2>
+            </div>
 
-      <div className="week-overview-calendar">
-        <CalendarView events={events} />
-      </div>
-    </div>
-  );
+            <div className="week-overview-calendar">
+                <CalendarView events={events} />
+            </div>
+        </div>
+    );
 };
 
 export const DashboardPage: React.FC = () => {
-  const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
-    fetchPolicy: "cache-and-network",
-  });
+    const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
+        fetchPolicy: "cache-and-network", // Ensures UI updates after mutations
+    });
 
-  if (loading) return <p style={{padding: 20}}>Loading...</p>;
-  if (error) return <p style={{padding: 20, color: 'red'}}>Error: {error.message}</p>;
-  if (!data || !data.me) return <p style={{padding: 20}}>Please login again.</p>;
+    if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
+    if (error) return <p style={{ padding: 20, color: 'red' }}>Error: {error.message}</p>;
+    if (!data || !data.me) return <p style={{ padding: 20 }}>Please login again.</p>;
 
-  const { me } = data;
-  
-  const events = (me.calendarEvents || []).map((evt: any) => ({
-    ...evt,
-    start: evt.start, 
-    end: evt.end
-  }));
+    const { me } = data;
 
-  return (
-    <div className="app-shell">
-      <Navbar />
-      <div className="app-layout">
-        <aside className="layout-sidebar">
-          <Sidebar events={events} />
-        </aside>
-        <main className="layout-main">
-          <WeekOverview events={events} />
-        </main>
-        <section className="layout-assistant">
-          <AssistantPanel />
-        </section>
-      </div>
-    </div>
-  );
+    // Safety check for calendar events
+    const events = (me.calendarEvents || []).map((evt: any) => ({
+        ...evt,
+        start: evt.start,
+        end: evt.end
+    }));
+
+    return (
+        <div className="app-shell">
+            <Navbar />
+            <div className="app-layout">
+                <aside className="layout-sidebar">
+                    {/* Pass preferences to Sidebar */}
+                    <Sidebar events={events} preferences={me.preferences || []} />
+                </aside>
+                <main className="layout-main">
+                    <WeekOverview events={events} />
+                </main>
+                <section className="layout-assistant">
+                    <AssistantPanel />
+                </section>
+            </div>
+        </div>
+    );
 };

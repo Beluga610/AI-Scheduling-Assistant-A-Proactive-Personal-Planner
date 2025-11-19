@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="login-page-container">
       <div className="login-card">
-        <h2 className="login-title">AI Assistant Login</h2>
+        <h2 className="login-title">Personal Planner Login</h2>
         <p className="login-subtitle">Select your identity to continue</p>
 
         <form onSubmit={handleLogin} className="login-form">

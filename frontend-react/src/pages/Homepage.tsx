@@ -9,7 +9,7 @@ export const HomePage: React.FC = () => {
   return (
     <div className="welcome-container">
       <div className="welcome-card">
-        <h1 className="welcome-title">AI Dating Assistant 💘</h1>
+              <h1 className="welcome-title">Personal Planner 💫</h1>
         <p className="welcome-subtitle">
           Smart Planning · Auto Scheduling · Conflict Detection
         </p>
