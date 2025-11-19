@@ -11,7 +11,7 @@ export default function AssistantPanel() {
     return saved ? JSON.parse(saved) : [
       { 
         role: "assistant", 
-        text: "Hello! I'm your AI scheduling assistant. You can say: 'Schedule coffee with Leo tomorrow at 3 PM'." 
+        text: "Hello! I'm Hitch, your Dating Strategist. Tell me your date target or let's plan a date!"
       }
     ];
   });
@@ -26,6 +26,7 @@ export default function AssistantPanel() {
   // Setup mutation
   const [sendMessage, { loading }] = useMutation(CHAT_WITH_AI, {
     refetchQueries: [{ query: GET_ME_QUERY }],
+    awaitRefetchQueries: true,
     onError: (err) => {
       console.error("AI Error:", err);
       setMessages(prev => [...prev, { role: "assistant", text: "Sorry, I encountered a problem. Please try again." }]);

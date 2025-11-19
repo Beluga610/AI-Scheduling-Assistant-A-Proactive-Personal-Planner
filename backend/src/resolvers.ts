@@ -4,9 +4,8 @@ import jwt from 'jsonwebtoken';
 import User from './models/User.js';
 import Task from './models/Task.js';
 import CalendarEvent from './models/CalendarEvent.js';
-import {processUserMessage, splitTaskUsingLLM } from './agents/AIAgents.js';
+import { processUserMessage, splitTaskUsingLLM } from './agents/AIAgents.js';
 
-// --- 1. DTO Helper ---
 const toGraphql = (doc: any) => {
     if (!doc) return null;
     const obj = doc.toObject ? doc.toObject() : doc;
@@ -16,7 +15,6 @@ const toGraphql = (doc: any) => {
     };
 };
 
-// --- 2. Auth Helper ---
 const checkAuth = (context: any) => {
     if (!context.user) {
         throw new GraphQLError('You must be logged in to do that.', {
@@ -29,7 +27,6 @@ const checkAuth = (context: any) => {
 export const resolvers = {
     Query: {
         ping: () => 'pong',
-
         me: async (_: any, __: any, context: any) => {
             const user = checkAuth(context);
             const foundUser = await User.findById(user._id);
@@ -65,7 +62,6 @@ export const resolvers = {
     },
 
     Mutation: {
-        // --- AUTHENTICATION ---
         register: async (_: any, { input }: any) => {
             const { name, email, password } = input;
             const existingUser = await User.findOne({ email });
@@ -75,7 +71,6 @@ export const resolvers = {
             const hashedPassword = await bcrypt.hash(password, 10);
             const newUser = new User({ name, email, password: hashedPassword });
             const res = await newUser.save();
-            // Fix: 30 day expiration
             const token = jwt.sign({ userId: res._id.toString(), email: res.email }, process.env.JWT_SECRET || 'mysecretkey123', { expiresIn: '30d' });
             return { token, user: toGraphql(res) };
         },
@@ -86,12 +81,10 @@ export const resolvers = {
             if (!user) {
                 throw new GraphQLError("User not found", { extensions: { code: "BAD_USER_INPUT" } });
             }
-            // Fix: 30 day expiration
             const token = jwt.sign({ userId: user._id.toString(), email: user.email }, process.env.JWT_SECRET || "mysecretkey123", { expiresIn: "30d" });
             return { token, user: toGraphql(user) };
         },
 
-        // --- PREFERENCES (NEW) ---
         updatePreferences: async (_: any, { preferences }: { preferences: string[] }, context: any) => {
             const user = checkAuth(context);
             const updatedUser = await User.findByIdAndUpdate(
@@ -102,7 +95,6 @@ export const resolvers = {
             return toGraphql(updatedUser);
         },
 
-        // --- MANUAL CRUD ---
         createTask: async (_: any, { input }: any, context: any) => {
             const user = checkAuth(context);
             const newTask = new Task({ ...input, status: 'TODO', owner: user._id });
@@ -149,14 +141,16 @@ export const resolvers = {
 
         chatWithAI: async (_: any, { prompt, history }: { prompt: string, history: any[] }, context: any) => {
             const userCtx = checkAuth(context);
-
+            console.log("DEBUG: 1. ChatWithAI called");
             const user = await User.findById(userCtx._id);
-            const userPrefs = user?.preferences || [];
-            const prefsString = userPrefs.length > 0 
-                ? userPrefs.map((p: string) => `- ${p}`).join('\n') 
+            if (!user) throw new Error("User not found");
+            if (!user.preferences) user.preferences = [];
+            const prefsString = user.preferences.length > 0 
+                ? user.preferences.map((p: string) => `- ${p}`).join('\n')
                 : "No specific preferences.";
-
+            console.log("DEBUG: 2. Current Prefs:", prefsString);
             const conversationHistory = history || [];
+            
             const today = new Date();
             const thirtyDaysAgo = new Date(today);
             thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -167,8 +161,8 @@ export const resolvers = {
                 owner: user._id,
                 start: { $gte: thirtyDaysAgo, $lte: sevenDaysLater }
             }).sort({ start: 1 }); 
-            let memoryString = "Here is the user's recent dating history:\n";
             
+            let memoryString = "Here is the user's recent dating history:\n";
             if (recentEvents.length === 0) {
                 memoryString += "(No recent dates found. User is single or new.)\n";
             } else {
@@ -184,15 +178,28 @@ export const resolvers = {
             memoryString += "\nUse this history to give context-aware advice. Do NOT list these events unless asked.";
 
             let aiResponse = await processUserMessage(prompt, conversationHistory, memoryString, prefsString);
-
             conversationHistory.push({ role: "user", content: prompt });
             conversationHistory.push({ role: "assistant", content: JSON.stringify(aiResponse) });
 
+            if (aiResponse.intent === 'update_prefs' && aiResponse.newPreferences) {
+                if (user) {
+                    if (!Array.isArray(user.preferences)) {
+                        user.preferences = [];
+                    }
+                    for (const pref of aiResponse.newPreferences) {
+                        if (!user.preferences.includes(pref)) {
+                            user.preferences.push(pref);
+                        }
+                    }
+                    user.markModified('preferences');
+                    await user.save();
+                }
+            }
+
             if (aiResponse.intent === 'call_tool' && aiResponse.tool_name === 'get_calendar_events') {
                 console.log(`AI is calling tool: ${aiResponse.tool_name}`);
-                const params = aiResponse.parameters;
                 const events = await CalendarEvent.find({
-                    owner: userCtx._id, // Fix: Use userCtx._id
+                    owner: userCtx._id,
                     start: { $gte: new Date() }
                 });
                 const readableSchedule = events.map(e => {
@@ -212,17 +219,16 @@ export const resolvers = {
                 };
                 conversationHistory.push(toolResponseMessage);
 
-                // Call AI again (Pass preferences again!)
                 aiResponse = await processUserMessage(toolResponseMessage.content, conversationHistory, memoryString, prefsString);
             }
+
+            // 6. Handle Intent: Create Event
             let finalMessage = aiResponse.replyMessage;
             if (aiResponse.intent === 'create_event' && aiResponse.events && aiResponse.events.length > 0) {
-                console.log(`🤖 AI wants to create ${aiResponse.events.length} event(s)`);
-
+                console.log(`AI wants to create ${aiResponse.events.length} event(s)`);
                 for (const event of aiResponse.events) {
                     const proposedStart = new Date(event.start);
                     const proposedEnd = new Date(event.end);
-
                     const conflictingEvent = await CalendarEvent.findOne({
                         owner: userCtx._id,
                         $or: [
@@ -231,20 +237,17 @@ export const resolvers = {
                             { start: { $lte: proposedStart }, end: { $gte: proposedEnd } }
                         ]
                     });
-
                     if (conflictingEvent) {
-                        console.log(`❌ CLASH DETECTED: "${event.title}" conflicts with "${conflictingEvent.title}"`);
                         finalMessage = `Sorry, I couldn't schedule "${event.title}" because it conflicts with your existing event: "${conflictingEvent.title}".`;
                         break;
                     } else {
                         const newEvent = new CalendarEvent({ ...event, owner: userCtx._id });
                         await newEvent.save();
-                        console.log(`✅ AI created event: ${newEvent.title}`);
+                        console.log(`AI created event: ${newEvent.title}`);
                     }
                 }
             }
 
-            // 6. Return Latest Data
             const latestEvents = await CalendarEvent.find({ owner: userCtx._id });
             return {
                 message: finalMessage,
@@ -253,8 +256,10 @@ export const resolvers = {
         },
     },
 
-    // --- FIELD RESOLVERS ---
     User: {
+        preferences: (parent: any) => {
+            return parent.preferences || [];
+        },
         tasks: async (parent: any) => {
             const tasks = await Task.find({ owner: parent.id || parent._id });
             return tasks.map(toGraphql);

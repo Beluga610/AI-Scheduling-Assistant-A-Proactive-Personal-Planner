@@ -11,16 +11,20 @@ const client = new OpenAI({
 });
 
 interface AgentResult {
-    intent: 'chat' | 'create_event' | 'call_tool';
+    intent: 'chat' | 'create_event' | 'call_tool' | 'update_prefs';
     replyMessage: string;
     events?: {
         title: string;
         start: Date;
         end: Date;
         allDay: boolean;
+        contactName?: string;
+        location?: string;
+        vibe?: string;
     }[];
     tool_name?: string; 
     parameters?: any; 
+    newPreferences?: string[];
 }
 export async function processUserMessage(
     prompt: string,
@@ -38,16 +42,16 @@ const systemPrompt = `
 
     # YOUR BRAIN (USER DATA)
     ${dataContext}
-    (Use this to know history. e.g., "Last date with Jack was 2 weeks ago".)
 
     # USER PREFERENCES (THE "LAW")
     The user has set the following rules. You MUST respect them:
-    ${prefsText || "(No preferences set yet. You are learning.)"}
+    ${prefsText || "(No preferences set yet.)"}
 
     # YOUR ROLE
-    1. **Be Proactive**: Don't just verify time. Suggest vibes.
-    2. **Vibe Check**: Warn about burnout or bad ideas based on history.
-    3. **Memory Keeper**: If the user states a new generic rule (e.g., "I hate sushi", "Don't book dates on Mondays", "My budget is low"), you MUST extract it to update the database.
+    1. **Memory Keeper**: If the user states preferences, extract them as **ATOMIC, SHORT rules**. 
+       - BAD: "User hates sushi and is allergic to peanuts." (Too complex, hard to edit)
+       - GOOD: ["User hates sushi", "User is allergic to peanuts"] (Split into list)
+    2. **Scheduling**: Use JSON to book slots.
 
     # TOOLS
     1. **get_calendar_events**: Check conflicts/free slots.
@@ -57,11 +61,12 @@ const systemPrompt = `
     - **Booking**: { "intent": "create_event", "replyMessage": "...", "events": [...] }
     - **Checking**: { "intent": "call_tool", "tool_name": "...", "parameters": {...} }
     
-    - **UPDATING MEMORY**: Use this when the user tells you a new preference.
+    - **UPDATING MEMORY**: 
+      Return an ARRAY of strings. Keep each string under 10 words if possible.
       { 
         "intent": "update_prefs", 
-        "newPreference": "User hates sushi", 
-        "replyMessage": "Got it. I've noted that you hate sushi." 
+        "newPreferences": [ "User is allergic to seafood", "User wants budget-friendly dates" ], 
+        "replyMessage": "Got it. Noted your allergy and budget constraints." 
       }
   `;
 
@@ -84,6 +89,16 @@ const systemPrompt = `
 
         console.log("AI Raw JSON Response:", content);
         const result = JSON.parse(content);
+
+        if (result.intent === 'update_prefs') {
+            return {
+                intent: 'update_prefs',
+                replyMessage: result.replyMessage,
+                newPreferences: Array.isArray(result.newPreferences) 
+                    ? result.newPreferences 
+                    : [result.newPreference || result.newPreferences]
+            };
+        }
 
         if (result.intent === 'call_tool') {
             return {

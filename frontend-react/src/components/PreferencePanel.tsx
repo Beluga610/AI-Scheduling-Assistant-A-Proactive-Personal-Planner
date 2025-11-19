@@ -8,27 +8,21 @@ interface Props {
 
 export default function PreferencePanel({ initialPreferences }: Props) {
     const [newRule, setNewRule] = useState("");
-
-    // Mutation to save changes
     const [updatePrefs, { loading }] = useMutation(UPDATE_PREFERENCES, {
-        // Critical: This forces the dashboard to re-fetch the user data after saving
         refetchQueries: [{ query: GET_ME_QUERY }],
-        awaitRefetchQueries: true, // Wait for refetch to complete before finishing loading state
+        awaitRefetchQueries: true, 
         onError: (err) => alert("Failed to save rule: " + err.message)
     });
 
-    // Use props as the source of truth (coming from the parent Query)
     const rules = initialPreferences || [];
-
     const handleAdd = async () => {
         if (!newRule.trim()) return;
 
         const updatedRules = [...rules, newRule];
 
         try {
-            // Wait for the update to finish
             await updatePrefs({ variables: { preferences: updatedRules } });
-            setNewRule(""); // Clear input only after success
+            setNewRule(""); 
         } catch (e) {
             console.error(e);
         }
@@ -45,7 +39,6 @@ export default function PreferencePanel({ initialPreferences }: Props) {
 
     return (
         <div className="sidebar-section">
-            {/* FIXED TITLE */}
             <div className="sidebar-section-title">MY PREFERENCES</div>
 
             <div className="sidebar-contact-list" style={{ marginBottom: '10px' }}>
@@ -58,7 +51,7 @@ export default function PreferencePanel({ initialPreferences }: Props) {
                 {rules.map((rule, index) => (
                     <div key={index} className="contact-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #eee' }}>
                         <span style={{ fontSize: '13px', color: '#444', wordBreak: 'break-word', paddingRight: '5px' }}>
-                            📌 {rule}
+                            {rule}
                         </span>
                         <button
                             onClick={() => handleDelete(index)}
