@@ -70,6 +70,17 @@ const Sidebar: React.FC<{ events: CalendarEvent[], preferences: string[] }> = ({
         <div className="sidebar">
             {/* --- 1. PREFERENCES PANEL --- */}
             <PreferencePanel initialPreferences={preferences} />
+            {/* --- 2. WEEKLY GOAL --- */}
+            <div className="sidebar-section">
+                <div className="sidebar-section-title">WEEKLY GOAL</div>
+                <textarea
+                    className="sidebar-input"
+                    rows={3}
+                    value={weeklyGoal}
+                    onChange={(e) => setWeeklyGoal(e.target.value)}
+                    placeholder="Enter your goal for this week..."
+                />
+            </div>
 
             {/* --- 2. WEEKLY GOAL --- */}
             <div className="sidebar-section">
