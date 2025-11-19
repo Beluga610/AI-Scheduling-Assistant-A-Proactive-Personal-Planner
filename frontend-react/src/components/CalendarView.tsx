@@ -67,14 +67,13 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const eventStyleGetter = (event: CalendarEvent) => {
     const name = extractNameFromTitle(event.title);
-    const backgroundColor = stringToColor(name);
     const borderColor = stringToDarkColor(name);
 
     return {
       style: {
-        backgroundColor: backgroundColor,
-        color: '#333', // 字体颜色，深灰比纯黑柔和
-        borderLeft: `4px solid ${borderColor}`, // 左侧加粗边框，增强辨识度
+        backgroundColor: '#FFFFFF',
+        color: '#333', 
+        borderLeft: `10px solid ${borderColor}`, 
         borderTop: 'none',
         borderRight: 'none',
         borderBottom: 'none',
@@ -82,18 +81,19 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
         opacity: 0.9,
         display: 'block',
         fontSize: '13px',
-        fontWeight: '500'
+        fontWeight: '500',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)'
       }
     };
   };
 
   const handleSelectSlot = (info: any) => {
-    console.log("日历空白处被点击了:", info);
+    console.log("Blank calendar slot clicked:", info);
     setSlotInfo(info);
   };
 
   const handleSelectEvent = (event: any) => {
-    console.log("事件被点击了:", event);
+    console.log("Event selected:", event);
     setSelectedEvent(event);
   };
 
@@ -122,16 +122,15 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
           onSave={async ({ title, start, end }) => {
             try {
               await createEvent({ variables: { title, start, end } });
-              setSlotInfo(null); // 成功后关闭
+              setSlotInfo(null); 
             } catch (e) {
-              console.error("创建失败:", e);
+              console.error("Failed to create event:", e);
               alert("Failed to create event. Check console.");
             }
           }}
         />
       )}
 
-      {/* EDIT EVENT MODAL */}
       {selectedEvent && (
         <EditEventModal
           event={selectedEvent}

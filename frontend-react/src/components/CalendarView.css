@@ -173,14 +173,13 @@ nav {
 }
 
 .rbc-event {
-  background-color: transparent !important;
   padding: 2px 5px !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s ease-in-out;
 }
 
 .rbc-event.rbc-selected {
   opacity: 1 !important;
-  box-shadow: 0 0 0 2px #333;
+  box-shadow: 0 0 0 2px rgba(100, 100, 100, 0.3);
 }
 
 .rbc-event-label {

@@ -9,7 +9,6 @@ import AssistantPanel from "../components/AssistantPanel";
 import { format } from "date-fns";
 import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
 
-// --- Interfaces ---
 interface CalendarEvent {
   id: string;
   title: string;
@@ -30,15 +29,6 @@ interface MeQueryResult {
   me: MeData;
 }
 
-/* --- Helper ---
-const extractNameFromTitle = (title: string): string => {
-  const match = title.match(/with\s+([A-Z][a-zA-Z]*)/i);
-  return match ? match[1] : "Others";
-};
-*/
-/**
- * Sidebar Component
- */
 const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
@@ -122,9 +112,6 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   );
 };
 
-/**
- * Middle Column: Week View (Cleaned)
- */
 const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return (
     <div className="week-overview">
@@ -139,9 +126,6 @@ const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   );
 };
 
-/**
- * Main Page
- */
 export const DashboardPage: React.FC = () => {
   const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
     fetchPolicy: "cache-and-network",
