@@ -1,4 +1,5 @@
 # AI Scheduling Assistant: Your Proactive Personal Planner
+## Personal Planner knowing your preferences and helps to track your relatoinships!
 An intelligent tool designed to eliminate the friction of planning and scheduling your week. It can go beyond simple calendar visualization by offering true personalization and visualize your weekly activities!
 
 This assistant acts as your dedicated planner, using large language models to arrange your activities based on two core data sets: your current timetable (existing events) and your unique personal preferences (custom rules). Simply ask the assistant to schedule an activity, and it will automatically find the optimal slot, ensuring no clashes, and your habits and rules (like "No gym within one hour of meals") are respected.
@@ -127,3 +128,4 @@ npm run dev
 
 
 检查浏览器控制台和 Node.js 终端的 console.log，查看模拟的数据流和 TODO 标记。
+
