@@ -65,6 +65,7 @@ export const GET_ME_QUERY = gql`
       id
       name
       email
+      preferences
       tasks {
         id
         title
@@ -121,6 +122,15 @@ export const CHAT_WITH_AI = gql`
         end
         allDay
       }
+    }
+  }
+`;
+
+export const UPDATE_PREFERENCES = gql`
+  mutation UpdatePreferences($preferences: [String]!) {
+    updatePreferences(preferences: $preferences) {
+      id
+      preferences
     }
   }
 `;
