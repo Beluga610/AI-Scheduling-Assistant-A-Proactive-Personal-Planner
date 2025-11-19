@@ -59,9 +59,7 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
 
     return (
         <div className="sidebar">
-            {/* --- 1. PREFERENCES PANEL --- */}
             <PreferencePanel initialPreferences={preferences} />
-            {/* --- 2. WEEKLY GOAL --- */}
             <div className="sidebar-section">
                 <div className="sidebar-section-title">WEEKLY GOAL</div>
                 <textarea

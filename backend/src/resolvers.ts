@@ -150,9 +150,11 @@ export const resolvers = {
         chatWithAI: async (_: any, { prompt, history }: { prompt: string, history: any[] }, context: any) => {
             const userCtx = checkAuth(context);
 
-            // 1. Fetch user preferences from DB
             const user = await User.findById(userCtx._id);
             const userPrefs = user?.preferences || [];
+            const prefsString = userPrefs.length > 0 
+                ? userPrefs.map((p: string) => `- ${p}`).join('\n') 
+                : "No specific preferences.";
 
             const conversationHistory = history || [];
             const today = new Date();
@@ -181,7 +183,7 @@ export const resolvers = {
             }
             memoryString += "\nUse this history to give context-aware advice. Do NOT list these events unless asked.";
 
-            let aiResponse = await processUserMessage(prompt, conversationHistory, memoryString);
+            let aiResponse = await processUserMessage(prompt, conversationHistory, memoryString, prefsString);
 
             conversationHistory.push({ role: "user", content: prompt });
             conversationHistory.push({ role: "assistant", content: JSON.stringify(aiResponse) });
@@ -211,7 +213,7 @@ export const resolvers = {
                 conversationHistory.push(toolResponseMessage);
 
                 // Call AI again (Pass preferences again!)
-                aiResponse = await processUserMessage(toolResponseMessage.content, conversationHistory, userPrefs);
+                aiResponse = await processUserMessage(toolResponseMessage.content, conversationHistory, memoryString, prefsString);
             }
             let finalMessage = aiResponse.replyMessage;
             if (aiResponse.intent === 'create_event' && aiResponse.events && aiResponse.events.length > 0) {
