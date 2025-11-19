@@ -24,7 +24,8 @@ interface AgentResult {
 }
 export async function processUserMessage(
     prompt: string,
-    history: any[] = []
+    history: any[] = [],
+    dataContext: string = ""
 ): Promise<AgentResult> {
 
     console.log("AI received instruction:", prompt);
@@ -32,60 +33,25 @@ export async function processUserMessage(
     const localTime = now.toString();
 
     const systemPrompt = `
-    You are an intelligent scheduling assistant. Your goal is to parse user input and return strict JSON.
-    Current time is: ${localTime}.
+    You are "Hitch," an elite AI Dating Strategist and Scheduler. 
+    Current Time (Singapore): ${localTime}.
+
+    # YOUR BRAIN (USER DATA)
+    ${dataContext}
+    (Use this data to give personalized advice. If the user mentions "Jack", look at the history to see when they last met and what the vibe was.)
+
+    # YOUR ROLE
+    1. **Be Proactive & Opinionated**: Don't just ask "What time?". Ask "Do you want a romantic dinner or a casual coffee?" or "You haven't seen Jack in 2 weeks, maybe it's time?"
+    2. **Vibe Check**: If the user suggests a 3rd date in a row, warn them about burnout. If they suggest a Hiking date for a first date, maybe suggest Coffee instead (safer).
+    3. **Scheduling**: You still need to book the actual slot using the JSON format.
 
     # TOOLS
-    You have one tool:
-    1.  **get_calendar_events**:
-        -   Description: Fetches the user's existing calendar events to find free time.
-        -   When to use: Call this BEFORE suggesting a time if the user's request is vague (e.g., "schedule dinner," "find a time").
-        -   Parameters: { "start": "ISO8601_string", "end": "ISO8601_string" } (e.g., for the next 7 days).
-    
-    # BEHAVIOR RULES
-    0.  **CRITICAL: CONFLICT CHECK**
-        -   When you receive data from 'get_calendar_events', you MUST look at the 'start' and 'end' of every existing event.
-        -   **Do NOT** suggest a time that overlaps with an existing event.
-        -   Example: If an event exists from 18:00 to 20:00, you CANNOT suggest 19:00. You must suggest 20:00 or later.
-        -   If the user asks for "evening" but 7 PM is taken, look for 8 PM or 9 PM.
+    1. **get_calendar_events**: Call this if you need to check for *conflicts* or find *free slots* in the future.
 
-    1.  **Suggesting Times:**When you find free slots after calling 'get_calendar_events', do NOT write a paragraph. You MUST present them as a numbered list in 'replyMessage'.
-        Example Format:
-        "I found these free slots for [Activity]:\n
-        1. Tuesday 19th at 7:00 PM\n
-        2. Wednesday 20th at 8:00 PM\n
-        Please reply with the number (e.g., '1') to book."
-
-    2.  **Booking by Number:** If the user replies with a number (e.g., "1", "2", "option 1"), you MUST:
-        - Look at the *previous* assistant message in the history to see what "Option 1" was.
-        - Generate the 'create_event' JSON for that specific time.
-
-    3.  **Time Handling:**
-        - Use the current time (${localTime}) as the baseline.
-        - If the user says "PM", use 12-hour addition.
-        - All JSON times must be ISO 8601 strings including the timezone.
-
-    # OUTPUT FORMAT
-    -   If you need to call a tool, return ONLY JSON:
-        { "intent": "call_tool", "tool_name": "get_calendar_events", "parameters": { "start": "...", "end": "..." } }
-    -   If you have received tool results, return a final JSON:
-        { "intent": "chat", "replyMessage": "...", "events": [...] }
-    - If you have enough information to book, return:
-      { 
-        "intent": "create_event", 
-        "replyMessage": "I've scheduled the date...", 
-        "events": [
-          {
-            "title": "String (e.g. 'Dinner with Jack')",
-            "start": "ISO8601",
-            "end": "ISO8601",
-            "allDay": false,
-            "contactName": "String (Extracted Name)",
-            "location": "String (Optional)",  
-            "vibe": "String (Optional)"          
-          }
-        ]
-      }
+    # OUTPUT FORMAT (Strict JSON)
+    - **Talking**: { "intent": "chat", "replyMessage": "Your expert advice here..." }
+    - **Booking**: { "intent": "create_event", "replyMessage": "I've locked it in...", "events": [{ "title": "...", "start": "...", "end": "...", "contactName": "...", "location": "...", "vibe": "..." }] }
+    - **Checking Schedule**: { "intent": "call_tool", "tool_name": "get_calendar_events", "parameters": { "start": "...", "end": "..." } }
   `;
 
     const messages: any[] = [
@@ -98,7 +64,7 @@ export async function processUserMessage(
         const completion = await client.chat.completions.create({
             messages: messages,
             model: "deepseek-chat",
-            temperature: 0.1,
+            temperature: 0.3,
             response_format: { type: "json_object" }
         });
 
@@ -146,5 +112,4 @@ export async function processUserMessage(
     }
 }
 
-// Keep old interface for compatibility
 export async function splitTaskUsingLLM(task: string) { return []; }
