@@ -147,35 +147,46 @@ export const resolvers = {
             return null;
         },
 
-        // --- THE MAIN AI BRAIN ---
         chatWithAI: async (_: any, { prompt, history }: { prompt: string, history: any[] }, context: any) => {
             const user = checkAuth(context);
-
-            // 1. Load History
             const conversationHistory = history || [];
-            let finalMessage = "";
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            const sevenDaysLater = new Date(today);
+            sevenDaysLater.setDate(today.getDate() + 7);
 
-            // 2. Call AI
-            let aiResponse = await processUserMessage(prompt, conversationHistory);
+            const recentEvents = await CalendarEvent.find({
+                owner: user._id,
+                start: { $gte: thirtyDaysAgo, $lte: sevenDaysLater }
+            }).sort({ start: 1 }); 
+            let memoryString = "Here is the user's recent dating history:\n";
+            
+            if (recentEvents.length === 0) {
+                memoryString += "(No recent dates found. User is single or new.)\n";
+            } else {
+                recentEvents.forEach(evt => {
+                    const dateStr = new Date(evt.start).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const isPast = new Date(evt.end) < today;
+                    const status = isPast ? "[PAST]" : "[UPCOMING]";
+                    if (evt.contactName || evt.vibe) {
+                         memoryString += `- ${status} ${dateStr}: "${evt.title}" with ${evt.contactName || 'Unknown'} @ ${evt.location || 'TBD'} (${evt.vibe || 'General'})\n`;
+                    }
+                });
+            }
+            memoryString += "\nUse this history to give context-aware advice. Do NOT list these events unless asked.";
 
-            // Update local history tracker
+            let aiResponse = await processUserMessage(prompt, conversationHistory, memoryString);
+
             conversationHistory.push({ role: "user", content: prompt });
             conversationHistory.push({ role: "assistant", content: JSON.stringify(aiResponse) });
 
-            // 3. Handle Tool Use
             if (aiResponse.intent === 'call_tool' && aiResponse.tool_name === 'get_calendar_events') {
-                console.log(`🤖 AI is calling tool: ${aiResponse.tool_name}`);
-
+                console.log(`AI is calling tool: ${aiResponse.tool_name}`);
                 const params = aiResponse.parameters;
-
-                // Filter: Only fetch future events to avoid confusing the AI
                 const events = await CalendarEvent.find({
-                    owner: user._id,
-                    // Optional: start: { $gte: new Date() } 
+                    owner: user._id
                 });
-                console.log(`🔍 Resolver found ${events.length} events for the AI.`);
-
-                // Convert to Readable String (Fixes timezone confusion)
                 const readableSchedule = events.map(e => {
                     const startStr = new Date(e.start).toLocaleString('en-US', {
                         timeZone: 'Asia/Singapore',
@@ -187,21 +198,14 @@ export const resolvers = {
                     });
                     return `- Busy: "${e.title}" from [${startStr}] to [${endStr}]`;
                 }).join("\n");
-
-                // 4. Send Clean Tool Result
                 const toolResponseMessage = {
                     role: "user",
                     content: `Here is the user's existing schedule (in Singapore Time):\n${readableSchedule}\n\nPlease analyze this schedule to find free slots. DO NOT overlap with these times.`
                 };
                 conversationHistory.push(toolResponseMessage);
-
-                // Call AI again with the data
                 aiResponse = await processUserMessage(toolResponseMessage.content, conversationHistory);
             }
-
-            finalMessage = aiResponse.replyMessage;
-
-            // 5. Create Events (Multi-Event + Clash Detection)
+            let finalMessage = aiResponse.replyMessage;
             if (aiResponse.intent === 'create_event' && aiResponse.events && aiResponse.events.length > 0) {
                 console.log(`🤖 AI wants to create ${aiResponse.events.length} event(s)`);
 
@@ -229,8 +233,6 @@ export const resolvers = {
                     }
                 }
             }
-
-            // 6. Return Latest Data
             const latestEvents = await CalendarEvent.find({ owner: user._id });
             return {
                 message: finalMessage,
