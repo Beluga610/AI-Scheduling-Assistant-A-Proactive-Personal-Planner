@@ -11,14 +11,14 @@ const UserSchema: Schema = new Schema(
     {
         name: { type: String, required: false },
         email: { type: String, required: true, unique: true },
-        password: { type: String, required: false }, // Required for login
+        password: { type: String, required: false }, 
         preferences: {
             type: [String],
-            default: [] // Example: ["No meetings after 6pm", "Gym needs 2 hours gap"]
+            default: [] 
         }
     },
     {
-        timestamps: true, // Adds createdAt and updatedAt automatically
+        timestamps: true, 
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
         id: false

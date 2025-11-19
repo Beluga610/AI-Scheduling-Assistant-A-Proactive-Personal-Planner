@@ -33,7 +33,7 @@ interface MeQueryResult {
     me: MeData;
 }
 
-const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
+const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({ events, preferences }) => {
   const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
@@ -61,7 +61,6 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
         <div className="sidebar">
             {/* --- 1. PREFERENCES PANEL --- */}
             <PreferencePanel initialPreferences={preferences} />
-
             {/* --- 2. WEEKLY GOAL --- */}
             <div className="sidebar-section">
                 <div className="sidebar-section-title">WEEKLY GOAL</div>
