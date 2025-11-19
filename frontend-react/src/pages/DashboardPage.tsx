@@ -7,14 +7,17 @@ import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import AssistantPanel from "../components/AssistantPanel";
 import { format } from "date-fns";
+import { extractNameFromTitle, stringToColor, stringToDarkColor } from "../utils/colorUtils";
 
-// --- Interfaces ---
 interface CalendarEvent {
   id: string;
   title: string;
   start: string;
   end: string;
   allDay?: boolean;
+  contactName?: string;
+  location?: string;
+  vibe?: string;
 }
 
 interface MeData {
@@ -29,15 +32,6 @@ interface MeQueryResult {
   me: MeData;
 }
 
-// --- Helper ---
-const extractNameFromTitle = (title: string): string => {
-  const match = title.match(/with\s+([A-Z][a-zA-Z]*)/i);
-  return match ? match[1] : "Others";
-};
-
-/**
- * Sidebar Component
- */
 const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   const [weeklyGoal, setWeeklyGoal] = useState("Plan 3 offline dates this week ✨");
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
@@ -49,8 +43,11 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   const contactsMap = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
     events.forEach(evt => {
-      const contactName = extractNameFromTitle(evt.title);
-      const normalizedName = contactName.charAt(0).toUpperCase() + contactName.slice(1);
+      let rawName = evt.contactName;
+      if (!rawName) {
+        rawName = extractNameFromTitle(evt.title);
+      }
+      const normalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
       if (!map[normalizedName]) map[normalizedName] = [];
       map[normalizedName].push(evt);
     });
@@ -80,27 +77,47 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
           </p>
         ) : (
           <div className="sidebar-contact-list">
-            {contactNames.map(name => (
-              <div key={name} className="contact-group">
-                <div className="contact-header" onClick={() => toggleContact(name)}>
-                  <div className="contact-avatar-small">{name.charAt(0)}</div>
-                  <span className="contact-name">{name}</span>
-                  <span className="contact-count">{contactsMap[name].length}</span>
+            {contactNames.map(name => {
+              const bgColor = stringToColor(name);
+              const textColor = stringToDarkColor(name);
+              return (
+                <div key={name} className="contact-group">
+                  <div className="contact-header" onClick={() => toggleContact(name)}>
+                    <div 
+                      className="contact-avatar-small"
+                      style={{ backgroundColor: bgColor, color: textColor }}
+                    >
+                      {name.charAt(0)}
+                    </div>
+                    <span className="contact-name">{name}</span>
+                    <span className="contact-count">{contactsMap[name].length}</span>
+                  </div>
+                  
+                  {expandedContacts[name] && (
+                    <ul className="contact-events-list">
+                      {contactsMap[name].map(evt => (
+                        <li key={evt.id} className="contact-event-item">
+                          <span 
+                            className="contact-event-date"
+                            style={{ color: textColor }}
+                          >
+                            {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
+                          </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <span>{evt.title}</span>
+                              {evt.location && (
+                                <span style={{ fontSize: '10px', color: '#999' }}>
+                                  📍 {evt.location}
+                                </span>
+                              )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                {expandedContacts[name] && (
-                  <ul className="contact-events-list">
-                    {contactsMap[name].map(evt => (
-                      <li key={evt.id} className="contact-event-item">
-                        <span className="contact-event-date">
-                          {format(new Date(Number(evt.start) || evt.start), "EEE, HH:mm")}
-                        </span>
-                        {evt.title}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -108,9 +125,6 @@ const Sidebar: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   );
 };
 
-/**
- * Middle Column: Week View (Cleaned)
- */
 const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   return (
     <div className="week-overview">
@@ -125,9 +139,6 @@ const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
   );
 };
 
-/**
- * Main Page
- */
 export const DashboardPage: React.FC = () => {
   const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
     fetchPolicy: "cache-and-network",
