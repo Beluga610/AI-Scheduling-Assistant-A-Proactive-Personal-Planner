@@ -1,7 +1,8 @@
 
-# AI Scheduling Assistant: Your Proactive Personal Planner
+# 💫 AI Scheduling Assistant: Your Proactive Personal Planner
 
-![abfd6ae010454f085787af926973d37b.png](:/2953cb2020d74eeba82189341cd7a903)
+<img width="2540" height="1168" alt="image" src="https://github.com/user-attachments/assets/088fe438-d034-4f81-9774-489642e4f93a" />
+
 This project is an intelligent tool designed to eliminate the friction of planning and scheduling your week. This assistant goes beyond a simple calendar by offering true personalization and visualising your weekly activities!
 
 The system acts as your dedicated planner, using large language models (LLMs) to arrange activities based on two core datasets: 
@@ -131,3 +132,4 @@ npm run dev
 If JWS Secret token expired: 
 In console, run:
 `localStorage.removeItem("token")`
+
