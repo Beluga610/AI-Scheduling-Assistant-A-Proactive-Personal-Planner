@@ -1,132 +1,133 @@
+
 # AI Scheduling Assistant: Your Proactive Personal Planner
-## Personal Planner knowing your preferences and helps to track your relatoinships!
-An intelligent tool designed to eliminate the friction of planning and scheduling your week. It can go beyond simple calendar by offering true personalization and visualize your weekly activities!
 
-This assistant acts as your dedicated planner, using large language models to arrange your activities based on two core data sets: your current timetable (existing events) and your unique personal preferences (custom rules). Simply ask the assistant to schedule an activity, and it will automatically find the optimal slot, ensuring no clashes, and your habits and rules (like "No gym within one hour of meals") are respected.
+![abfd6ae010454f085787af926973d37b.png](:/2953cb2020d74eeba82189341cd7a903)
+This project is an intelligent tool designed to eliminate the friction of planning and scheduling your week. This assistant goes beyond a simple calendar by offering true personalization and visualising your weekly activities!
 
-Worry not—the system is designed for flexibility, not frustration. If the AI suggests there is a conflict based on your rules, you remain in complete control. Just tell the assistant you insist on the specific time, and it will bypass your preference and book the slot for you. Plan and schedule easily, knowing the AI always works according to your priorities!
+The system acts as your dedicated planner, using large language models (LLMs) to arrange activities based on two core datasets: 
+your current timetable (existing events) and your unique personal preferences (custom rules). Simply ask the assistant to schedule an activity, and it will automatically find the optimal slot, ensuring no clashes, and respecting your habits (like "No gym within one hour of meals").
 
-The app also goes beyond simple time management into relationship tracking.
-The Dating Contacts panel transforms your calendar from a list of tasks into a tool for relationship management. Instead of just seeing an event named "Dinner," this feature automatically parses your schedule to show you how you are allocating your time with specific individuals.
+For flexibility: if the AI suggests a conflict based on your rules, you remain in complete control. Just tell the assistant you insist on the specific time, and it will bypass your preference and book the slot for you.
 
+## Core Features
 
+* **Intelligent Scheduling:** Uses DeepSeek LLMs to parse natural language and convert requests into concrete calendar events.
+* **Contextual Awareness:** Injects existing calendar data and personal preference rules directly into the AI's reasoning pipeline to find the optimal, conflict-free slot (e.g., automatically suggesting a Wednesday evening dinner if Monday/Tuesday are busy).
+* **Personal Preference:** Personalized calendar is designed to eliminate planning friction by giving you **proactive, habit-aware advice** and visualizing your schedule to help you **achieve your weekly goals** easily.
+* **Relationship Tracking:** The sidebar automatically parses event titles (e.g., "Dinner with Leo") to categorize and summarize time allocated to specific contacts.
+* **DTO & Timezone Safe:** Backend is designed with a Data Transfer Object (DTO) layer to ensure time zone conversions and data formatting are correct across all GraphQL transactions.
 
+## 📁 Project Structure
 
-## 📁 项目结构
+### Backend (`/backend`)
+The backend is a Node.js/TypeScript service using Apollo Server and MongoDB.
 
-- `.env` — 存储秘密和环境变量 (本地)<br>
-- `.env.example` — 环境变量示例文件<br>
-- `.gitignore` — Git 忽略配置<br>
-- `docker-compose.yml` — Docker 配置 (例如: 启动 MongoDB)<br>
-- `package.json` — 根 package.json (用于 workspace 或 concurrently)<br>
-- `README.md` — 项目文档 (你正在阅读的文件)<br>
+- `src/`
+    - `index.ts` — Server entry point (Apollo Server, DB connection)
+    - `db.ts` — MongoDB connection logic
+    - `schema.ts` — GraphQL Type Definitions (Types, Queries, Mutations)
+    - `resolvers.ts` — GraphQL Resolvers (Business logic, DTO mapping)
+    - `agents/AIAgents.ts` — **Core LLM Logic**, Tool Definition, and Prompt Engineering
+    - `models/` — Mongoose Data Models (`User.ts`, `CalendarEvent.ts`, etc.)
+    - `utils/auth.ts` — JWT handling and authentication helpers
 
----
+### Frontend (`/frontend-react`)
+The frontend is built with React and Vite.
 
-### 🧠 Backend (`/backend`)
-- `package.json`  
-- `tsconfig.json`  
-- `src/`  
-  - `index.ts` — ✅ 服务器入口 (Apollo Server, DB 连接)<br>
-  - `db.ts` — ✳️ (新增) MongoDB 连接逻辑<br>
-  - `schema.ts` — ✅ GraphQL TypeDefs (类型定义)<br>
-  - `resolvers.ts` — ✅ GraphQL Resolvers (业务逻辑)<br>
-  - `agents/`  
-    - `AIAgents.ts` — ✅ LLM 任务拆分逻辑<br>
-  - `models/` — ✳️ (新增) Mongoose 数据模型  
-    - `User.ts`  
-    - `Task.ts`  
-    - `CalendarEvent.ts`  
-  - `utils/` — ✳️ (新增) 辅助工具 (例如: 认证)  
-    - `auth.ts` — JWT, 密码哈希等  
-  - `services/` — ✳️ (新增) 第三方 API 集成  
-    - `googleCalendar.ts` — (可选) Google Calendar API 集成  
-  - `scripts/` — ✳️ (新增) 存放一次性脚本  
-    - `test-deepseek.ts` — (已移动) LLM 测试脚本  
+- `src/`
+    - `main.tsx` — React entry
+    - `pages/` — Page-level components (`DashboardPage.tsx`, `LoginPage.tsx`)
+    - `components/` — Reusable UI components (`CalendarView.tsx`, `AssistantPanel.tsx`, `PreferencePanel.tsx`)
+    - `graphql/queries.ts` — Apollo GraphQL Queries and Mutations
 
 ---
 
-### 💻 Frontend (`/frontend-react`)
-- `package.json`  
-- `vite.config.ts`  
-- `index.html`  
-- `src/`  
-  - `main.tsx` — ✅ React 入口  
-  - `App.tsx` — ✅ 顶级组件 (包含路由)  
-  - `App.css` — 全局样式  
-  - `router.tsx` — ✳️ (新增) React Router 路由配置  
-  - `components/` — ✳️ (新增) 可重用 UI 组件  
-    - `CalendarView.tsx`  
-    - `TaskInput.tsx`  
-    - `Login.tsx`  
-    - `Navbar.tsx`  
-  - `pages/` — ✳️ (新增) 页面级组件  
-    - `HomePage.tsx`  
-    - `LoginPage.tsx`  
-    - `DashboardPage.tsx`  
-  - `graphql/`  
-    - `client.ts` — ✅ Apollo Client 初始化  
-    - `queries.ts` — ✅ GraphQL 查询 (QUERY) 和变更 (MUTATION)  
+##  Getting Started (Development Setup)
 
----
+### Prerequisites
 
-如何运行 (开发环境)
+You must have the following installed:
+* **Node.js** (v20+)
+* **npm**
+* **Docker** (and Docker Compose)
 
-先决条件
+### Execution Steps
 
-Node.js (v18+)
+#### 1. Start the Database (MongoDB terminal)
 
-npm
+We use Docker Compose to quickly launch a dedicated MongoDB instance.
 
-Docker (和 Docker Compose)
-
-1. 启动数据库 (MongoDB)
-
-我们使用 Docker Compose 快速启动一个 MongoDB 实例。
-
+```bash
 docker-compose up -d mongo-db
+````
 
+*(To stop the database: `docker-compose down`)*
 
-(如果你想停止: docker-compose down)
+#### 2\. Configure Environment Variables
 
-2. 配置环境变量
+Copy the `.env.example` file to `.env` and configure your keys. **You must provide a valid DEEPSEEK\_API\_KEY.**
 
-复制 .env.example 为 .env，并确保 MONGODB_URI 和 JWT_SECRET 已配置。
-
+```bash
 cp .env.example .env
+```
 
+*(Open the `.env` file and set `MONGODB_URI`, `JWT_SECRET`, and your `DEEPSEEK_API_KEY`.)*
 
-(打开 .env 文件并添加一个 JWT_SECRET)
+#### 3\. Install Dependencies
 
-3. 安装依赖
+Run `npm install` from the project root. This installs dependencies for the root, `/backend`, and `/frontend-react`.
 
-在项目根目录运行 npm install。这将会同时安装根目录、backend/ 和 frontend-react/ 的依赖。
-
+```bash
 npm install
+```
+
+```bash
+mongod --dbpath .\data\db --bind_ip 0.0.0.0 --port 27017 --logpath .\log\mongodb.log
+```
 
 
-4. 启动开发服务器
+#### 4\. Launch Development Servers
 
-在项目根目录运行 dev 脚本，它将使用 concurrently 同时启动前端和后端。
-
+##### Backend Terminal
+```
+cd backend
+```
+For Node.js version under 20:
+```
+nvm install 20 
+nvm use 20 
+```
+Then:
+```
+npm install bcryptjs jsonwebtoken
+npm install --save-dev @types/bcryptjs @types/jsonwebtoken
 npm run dev
+```
+##### Frontend Terminal
+```
+cd frontend-react
+```
+For Node.js version under 20:
+`nvm use 20`
+Then:
+```
+npm install --save-dev ts-node-dev@1.1.8 typescript@3.9 @types/node@10
+npm run dev
+```
 
+| Service | Address |
+| :--- | :--- |
+| **Backend (Apollo GQL)** | http://localhost:4000 |
+| **Frontend (Vite React)** | http://localhost:5173 (or as prompted by Vite) |
 
-🚀 后端 (Apollo GQL) 将运行在: http://localhost:4000
+### Debugging Workflow
 
-🎨 前端 (Vite React) 将运行在: http://localhost:5173 (或 Vite 提示的端口)
+1.  Access the frontend: **http://localhost:5173**
+2.  Log in (using test credentials or register a new user).
+3.  Go to the Dashboard (`/dashboard`).
+4.  Interact with the **AI Assistant** panel (Right side) to schedule activities based on your preferences.
+5.  Check the Node.js terminal output (running `npm run dev`) for verbose `console.log` messages showing the AI's reasoning, tool calls, and final decision path.
 
-调试工作流程
-
-打开 http://localhost:5173 访问前端。
-
-打开 http://localhost:4000/graphql 访问 Apollo GQL 操作台 (Playground)，你可以在这里独立测试后端的 login 和 splitTask 变更。
-
-前端登录 (使用模拟值 user@example.com / 123456)，你将被重定向到 /dashboard。
-
-在仪表盘中，输入任务（例如 "下周完成报告"）并点击 "AI 智能拆分"。
-
-
-检查浏览器控制台和 Node.js 终端的 console.log，查看模拟的数据流和 TODO 标记。
-
-
+If JWS Secret token expired: 
+In console, run:
+`localStorage.removeItem("token")`
