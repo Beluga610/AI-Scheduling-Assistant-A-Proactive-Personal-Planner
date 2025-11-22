@@ -11,7 +11,7 @@ interface AddEventModalProps {
 export default function AddEventModal({ slotInfo, onCancel, onSave }: AddEventModalProps) {
   const [title, setTitle] = useState("");
 
-  // 初始化时间
+  // Initialization time
   const [start, setStart] = useState(format(slotInfo.start, "yyyy-MM-dd'T'HH:mm"));
   const [end, setEnd] = useState(format(slotInfo.end, "yyyy-MM-dd'T'HH:mm"));
 

@@ -4,6 +4,7 @@ import { CHAT_WITH_AI, GET_ME_QUERY } from "../graphql/queries";
 import "./AssistantPanel.css";
 
 export default function AssistantPanel() {
+  // Persist chat history in localStorage to maintain context across reloads
   const [messages, setMessages] = useState<{ role: string; text: string }[]>(() => {
     const saved = localStorage.getItem("chat_history");
     return saved ? JSON.parse(saved) : [
@@ -20,7 +21,11 @@ export default function AssistantPanel() {
 
   const [input, setInput] = useState("");
 
-  // Setup mutation
+/**
+   * AI Mutation Setup:
+   * Configured to automatically refetch 'GET_ME_QUERY' after a successful AI response.
+   * This ensures that if the AI creates a calendar event, the Calendar View updates immediately.
+   */
   const [sendMessage, { loading }] = useMutation(CHAT_WITH_AI, {
     refetchQueries: [{ query: GET_ME_QUERY }],
     awaitRefetchQueries: true,
@@ -30,6 +35,7 @@ export default function AssistantPanel() {
     }
   });
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -37,6 +43,7 @@ export default function AssistantPanel() {
   async function handleSend() {
     if (!input.trim() || loading) return;
     const userText = input;
+    // Prepare context window (last 10 messages) for the LLM
     const historyToSend = messages.slice(-10).map(m => ({
       role: m.role === 'bot' || m.role === 'assistant' ? 'assistant' : 'user', 
       content: m.text
