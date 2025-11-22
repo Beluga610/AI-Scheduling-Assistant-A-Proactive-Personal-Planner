@@ -6,6 +6,7 @@ import Task from './models/Task.js';
 import CalendarEvent from './models/CalendarEvent.js';
 import { processUserMessage, splitTaskUsingLLM } from './agents/AIAgents.js';
 
+// Helper to format Mongoose documents for GraphQL response
 const toGraphql = (doc: any) => {
     if (!doc) return null;
     const obj = doc.toObject ? doc.toObject() : doc;
@@ -15,6 +16,7 @@ const toGraphql = (doc: any) => {
     };
 };
 
+// Middleware-like authentication check
 const checkAuth = (context: any) => {
     if (!context.user) {
         throw new GraphQLError('You must be logged in to do that.', {
@@ -138,17 +140,30 @@ export const resolvers = {
         syncTaskToCalendar: async (_: any, { taskId }: { taskId: string }, context: any) => {
             return null;
         },
-
+        
+        /**
+         * Main Integration Hub: Chat with AI
+         * * This resolver acts as the bridge between:
+         * 1. Frontend Chat UI (input prompt)
+         * 2. Database (fetching user context, history, and preferences)
+         * 3. AI Agent Service (logic processing)
+         * 4. Calendar Tools (executing scheduling actions)
+         */
         chatWithAI: async (_: any, { prompt, history }: { prompt: string, history: any[] }, context: any) => {
             const userCtx = checkAuth(context);
             console.log("DEBUG: 1. ChatWithAI called");
             const user = await User.findById(userCtx._id);
             if (!user) throw new Error("User not found");
+            // 1. Prepare User Preferences
+            // Fetches dynamic preferences stored in DB to personalize the AI persona.
             if (!user.preferences) user.preferences = [];
             const prefsString = user.preferences.length > 0 
                 ? user.preferences.map((p: string) => `- ${p}`).join('\n')
                 : "No specific preferences.";
             console.log("DEBUG: 2. Current Prefs:", prefsString);
+            
+            // 2. Prepare Contextual Memory
+            // Fetches recent calendar events (past 30 days, future 7 days) to give the AI "memory" of the user's life.
             const conversationHistory = history || [];
             
             const today = new Date();
@@ -176,11 +191,17 @@ export const resolvers = {
                 });
             }
             memoryString += "\nUse this history to give context-aware advice. Do NOT list these events unless asked.";
-
+            
+            // 3. Invoke AI Agent
+            // Passes the constructed context to the AI service.
             let aiResponse = await processUserMessage(prompt, conversationHistory, memoryString, prefsString);
+            
+            // Store interaction in transient history for the current session
             conversationHistory.push({ role: "user", content: prompt });
             conversationHistory.push({ role: "assistant", content: JSON.stringify(aiResponse) });
 
+            // 4. Handle AI Intents
+            // Case A: AI detects a new user preference -> Update DB
             if (aiResponse.intent === 'update_prefs' && aiResponse.newPreferences) {
                 if (user) {
                     if (!Array.isArray(user.preferences)) {
@@ -195,7 +216,7 @@ export const resolvers = {
                     await user.save();
                 }
             }
-
+            // Case B: AI needs to check calendar availability (Tool Call)
             if (aiResponse.intent === 'call_tool' && aiResponse.tool_name === 'get_calendar_events') {
                 console.log(`AI is calling tool: ${aiResponse.tool_name}`);
                 const events = await CalendarEvent.find({
@@ -204,7 +225,7 @@ export const resolvers = {
                 });
                 console.log(`🔍 Resolver found ${events.length} future events.`);
 
-                // Fix: Convert to Human-Readable Time (Singapore Time)
+                // Format dates to Human-Readable Singapore Time for the AI to understand
                 const readableSchedule = events.map(e => {
                     const startStr = new Date(e.start).toLocaleString('en-US', {
                         timeZone: 'Asia/Singapore',
@@ -216,20 +237,23 @@ export const resolvers = {
                     });
                     return `- Busy: "${e.title}" from [${startStr}] to [${endStr}]`;
                 }).join("\n");
+                // Re-prompt the AI with the tool output
                 const toolResponseMessage = {
                     role: "user",
                     content: `Here is the user's existing schedule (in Singapore Time):\n${readableSchedule}\n\nPlease analyze this schedule to find free slots. DO NOT overlap with these times.`
                 };
                 conversationHistory.push(toolResponseMessage);
 
+                // Recursive call to process the tool output
                 aiResponse = await processUserMessage(toolResponseMessage.content, conversationHistory, memoryString, prefsString);
             }
 
-            // 6. Handle Intent: Create Event
+            // Case C: AI wants to book a meeting (Create Event)
             let finalMessage = aiResponse.replyMessage;
             if (aiResponse.intent === 'create_event' && aiResponse.events && aiResponse.events.length > 0) {
                 console.log(`AI wants to create ${aiResponse.events.length} event(s)`);
                 for (const event of aiResponse.events) {
+                    // Conflict Detection (Double-check before writing to DB)
                     const proposedStart = new Date(event.start);
                     const proposedEnd = new Date(event.end);
                     const conflictingEvent = await CalendarEvent.findOne({
@@ -250,7 +274,7 @@ export const resolvers = {
                     }
                 }
             }
-
+            // Return latest state to Frontend for real-time UI update
             const latestEvents = await CalendarEvent.find({ owner: userCtx._id });
             return {
                 message: finalMessage,
