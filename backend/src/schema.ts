@@ -1,4 +1,3 @@
-// src/schema.ts
 import { gql } from 'graphql-tag';
 
 export const typeDefs = gql`
@@ -6,8 +5,8 @@ export const typeDefs = gql`
     id: ID!
     email: String!
     name: String
-    tasks: [Task] # 用户关联的任务
-    calendarEvents: [CalendarEvent] # 用户关联的日历事件
+    tasks: [Task]           # Tasks associated with the user
+    calendarEvents: [CalendarEvent] # Calendar events associated with the user
     preferences: [String]!
   }
 
@@ -67,47 +66,47 @@ export const typeDefs = gql`
 
 
   type Query {
-    "健康检查端点"
+    "Health check endpoint"
     ping: String
     
-    "获取当前登录的用户信息"
+    "Get currently logged in user info"
     me: User
     
-    "获取特定用户的所有任务"
+    "Get all tasks for a specific user"
     userTasks(userId: ID!): [Task]
     
-    "获取特定用户的所有日历事件"
+    "Retrieve all calendar events of a specific user"
     userCalendarEvents(userId: ID!): [CalendarEvent]
 
-    "获取用户列表"
+    "Obtain the list of users"
     users: [User]
 
-    "获取任务列表"
+    "Obtain the list of tasks"
     tasks(ownerId: ID): [Task]
 
-    "获取日历事件列表"
+    "Obtain the list of calendar events"
     events(ownerId: ID): [CalendarEvent]
   }
 
   type Mutation {
-    "用户注册"
+    "User Registration"
     register(input: RegisterInput!): AuthPayload
     
-    "用户登录"
+    "User Login"
     login(input: LoginInput!): AuthPayload
 
-    "核心功能：使用 LLM 拆分一个复杂的任务"
+    "Core Feature: Use LLM to break down complex tasks"
     splitTask(prompt: String!): [Task]!
 
-    "（可选）手动创建一个任务"
+    "Manually create a task"
     createTask(input: CreateTaskInput!): Task
 
-    "（可选）将一个任务同步到日历"
+    "Synchronize a task to the calendar"
     syncTaskToCalendar(taskId: ID!): CalendarEvent
 
     updatePreferences(preferences: [String]!): User
 
-    "创建日历事件"
+    "Create calendar event"
     createEvent(
       title: String!
       start: String!
@@ -118,7 +117,7 @@ export const typeDefs = gql`
       vibe: String
     ): CalendarEvent
 
-    "更新日历事件"
+    "Update calendar events"
     updateEvent(
       id: ID!
       title: String
@@ -127,15 +126,15 @@ export const typeDefs = gql`
       allDay: Boolean
     ): CalendarEvent
 
-    "删除日历事件"
+    "Delete calendar events"
     deleteEvent(id: ID!): Boolean
 
-    "AI 聊天窗口 (UPDATED: Now accepts history)"
+    "AI Chat Window (UPDATED: Now accepts history)"
     chatWithAI(prompt: String!, history: [ChatMessageInput]): AIResponse
   }
     
   type AIResponse {
-    message: String!                  # AI 给用户的自然语言回复
-    latestEvents: [CalendarEvent]     # 返回最新的事件列表，用于前端自动刷新日历
+    message: String!                  # Natural language response from AI
+    latestEvents: [CalendarEvent]     # Updated event list for real-time frontend refresh
   }
 `;

@@ -32,17 +32,25 @@ interface MeQueryResult {
     me: MeData;
 }
 
+/**
+ * Sidebar Component:
+ * Displays user preferences and a dynamic list of contacts based on calendar history.
+ * Computes relationship statistics (e.g., "Last seen", "Next date") on the fly.
+ */
 const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({ events, preferences }) => {
   const [expandedContacts, setExpandedContacts] = useState<Record<string, boolean>>({});
 
   const toggleContact = (name: string) => {
       setExpandedContacts(prev => ({ ...prev, [name]: !prev[name] }));
   };
+
+  // Memoized computation to group events by Contact Name efficiently
   const contactsMap = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
     events.forEach(evt => {
       let rawName = evt.contactName;
       if (!rawName) {
+        // Fallback: try to extract name from title using regex utility
         rawName = extractNameFromTitle(evt.title);
       }
       const normalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -53,11 +61,18 @@ const Sidebar: React.FC<{ events: CalendarEvent[]; preferences: string[] }> = ({
   }, [events]);
 
   const contactNames = Object.keys(contactsMap).sort();
+  /**
+   * Logic to calculate relationship health:
+   * Determines the gap between the current date and the last/next interaction.
+   */
   const getRelationshipStats = (contactEvents: CalendarEvent[]) => {
     const now = new Date();
+    // Filter and sort past events
     const pastEvents = contactEvents
       .filter(e => isBefore(new Date(Number(e.end) || e.end), now))
       .sort((a, b) => new Date(Number(b.end) || b.end).getTime() - new Date(Number(a.end) || a.end).getTime());
+    
+    // Filter and sort future events
     const futureEvents = contactEvents
       .filter(e => isAfter(new Date(Number(e.start) || e.start), now))
       .sort((a, b) => new Date(Number(a.start) || a.start).getTime() - new Date(Number(b.start) || b.start).getTime());
@@ -170,7 +185,11 @@ const WeekOverview: React.FC<{ events: CalendarEvent[] }> = ({ events }) => {
         </div>
     );
 };
-
+/**
+ * Dashboard Container:
+ * Acts as the main controller for the application view.
+ * Fetches data using GraphQL and distributes it to child components (Sidebar, Calendar, Assistant).
+ */
 export const DashboardPage: React.FC = () => {
     const { data, loading, error } = useQuery<MeQueryResult>(GET_ME_QUERY, {
         fetchPolicy: "cache-and-network", 

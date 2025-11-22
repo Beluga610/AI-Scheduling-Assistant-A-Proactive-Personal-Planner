@@ -1,5 +1,8 @@
 import { gql } from "@apollo/client";
 
+// --- API Contract Definition ---
+// These queries define the data requirements between Frontend and Backend.
+
 export const PING = gql`
   query Ping {
     ping
@@ -59,6 +62,11 @@ export const LOGIN_MUTATION = gql`
   }
 `;
 
+/**
+ * Core Data Query:
+ * Fetches the complete user context including Profile, Tasks, and Calendar Events.
+ * Used to hydrate the Dashboard state in a single round-trip.
+ */
 export const GET_ME_QUERY = gql`
   query GetMe {
     me {
@@ -150,6 +158,11 @@ export const DELETE_EVENT = gql`
   }
 `;
 
+/**
+ * AI Integration Mutation:
+ * Sends user prompts and conversation history to the backend AI Agent.
+ * Returns the AI's textual response AND any auto-scheduled events.
+ */
 export const CHAT_WITH_AI = gql`
   mutation ChatWithAI($prompt: String!, $history: [ChatMessageInput]) {
     chatWithAI(prompt: $prompt, history: $history) {

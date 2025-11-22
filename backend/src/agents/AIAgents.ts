@@ -32,7 +32,17 @@ interface AgentResult {
     parameters?: any; 
     newPreferences?: string[];
 }
-
+/**
+ * Core AI orchestration function.
+ * * This function acts as the brain of the application:
+ * 1. Injects temporal context (Current Time) and User Preferences into the System Prompt.
+ * 2. Sends the conversation history to the LLM (DeepSeek).
+ * 3. Enforces JSON output format to strictly categorize user intent (Chat, Create Event, Tool Call, etc.).
+ * * @param prompt - The latest user message.
+ * @param history - Conversation history for context awareness.
+ * @param dataContext - Relevant calendar data (e.g., free slots).
+ * @param prefsText - User's hard constraints/preferences.
+ */
 export async function processUserMessage(
     prompt: string,
     history: any[] = [],
@@ -44,6 +54,10 @@ export async function processUserMessage(
 
     const now = new Date();
     const localTime = now.toString();
+
+    // System Prompt engineering:
+    // We explicitly define "Filters" in the prompt to force the LLM to perform
+    // internal logic checks (Date validity, Preference conflicts) before outputting.
     const systemPrompt = `
     You are "Hitch," an elite AI Dating Strategist and Scheduler.
     Current Time (Singapore): ${localTime}.
@@ -74,26 +88,26 @@ export async function processUserMessage(
     - **UPDATING MEMORY (CRITICAL)**: Use this ONLY if the user states a new permanent preference:
       { "intent": "update_prefs", "newPreferences": [ "Rule 1", "Rule 2" ], "replyMessage": "Got it. Noted your new rules." }
     
-# 6. DECISION LOGIC (STRICT FILTERING PIPELINE)
-Perform these checks INTERNALLY. Do NOT output your internal reasoning or rejected slots.
+    # 6. DECISION LOGIC (STRICT FILTERING PIPELINE)
+    Perform these checks INTERNALLY. Do NOT output your internal reasoning or rejected slots.
 
-**FILTER 0: EXPLICIT OVERRIDE CHECK (INSISTENCE)**
-- If the user's current prompt contains keywords like "insist," "still want to," or "go ahead," proceed to calculating the compromise slot and booking it immediately (intent: 'create_event'). Skip all subsequent filtering steps.
+    **FILTER 0: EXPLICIT OVERRIDE CHECK (INSISTENCE)**
+    - If the user's current prompt contains keywords like "insist," "still want to," or "go ahead," proceed to calculating the compromise slot and booking it immediately (intent: 'create_event'). Skip all subsequent filtering steps.
 
-**FILTER 1: TEMPORAL VALIDITY (Past/Future)**
-    - DISCARD any time slot that is BEFORE the 'Current Time' timestamp.
-    
- **FILTER 2: CALENDAR CONFLICTS (Busy/Free)**
-    - DISCARD any time slot that OVERLAPS with any existing event.
+    **FILTER 1: TEMPORAL VALIDITY (Past/Future)**
+        - DISCARD any time slot that is BEFORE the 'Current Time' timestamp.
+        
+    **FILTER 2: CALENDAR CONFLICTS (Busy/Free)**
+        - DISCARD any time slot that OVERLAPS with any existing event.
 
- **FILTER 3: USER PREFERENCES**
-   - Check every potential slot against the User Preferences rules!!!
-   If any slot violates a rule in # 2. USER PREFERENCES (THE LAW & MEMORY) , you MUST remove it from the suggestion list; only perfectly compliant slots may be presented.
-   - **Example:** If "No dinner if there are meetings later" is set, and there is a meeting at 8 PM, suggesting dinner at 6 PM is FORBIDDEN. 
+    **FILTER 3: USER PREFERENCES**
+    - Check every potential slot against the User Preferences rules!!!
+    If any slot violates a rule in # 2. USER PREFERENCES (THE LAW & MEMORY) , you MUST remove it from the suggestion list; only perfectly compliant slots may be presented.
+    - **Example:** If "No dinner if there are meetings later" is set, and there is a meeting at 8 PM, suggesting dinner at 6 PM is FORBIDDEN. 
 
-**FINAL OUTPUT ACTION**
-    - Collect ALL slots that survive all three filters.
-    - If no valid slots remain, state clearly that no suitable time could be found.
+    **FINAL OUTPUT ACTION**
+        - Collect ALL slots that survive all three filters.
+        - If no valid slots remain, state clearly that no suitable time could be found.
 
 
     **FINAL OUTPUT FORMATTING:**
@@ -131,6 +145,8 @@ Perform these checks INTERNALLY. Do NOT output your internal reasoning or reject
             };
         }
 
+        // Intent Routing:
+        // Based on the parsed JSON, we route the execution flow to different handlers.
         if (result.intent === 'call_tool') {
             return {
                 intent: 'call_tool',
@@ -162,6 +178,7 @@ Perform these checks INTERNALLY. Do NOT output your internal reasoning or reject
 
     } catch (error) {
         console.error("LLM Call Failed:", error);
+        // Fallback mechanism for robustnesss
         return {
             intent: 'chat',
             replyMessage: "Sorry, I'm busy with another guy who need more help. I will come back to you later."

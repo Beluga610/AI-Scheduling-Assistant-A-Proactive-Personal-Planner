@@ -65,7 +65,13 @@ const CustomEvent = ({ event }: { event: CalendarEvent }) => {
   );
 };
 
+/**
+ * Complex Calendar Component:
+ * Wraps 'react-big-calendar' with custom styling and event handling.
+ * Manages local UI state for modals (Add/Edit/Delete) and syncs with GraphQL mutations.
+ */
 export default function CalendarView({ events }: { events: CalendarEvent[] }) {
+  // Pre-process events to ensure Date objects are valid before rendering
   const formattedEvents = useMemo(() => {
     return events.map(ev => ({
       ...ev,
@@ -74,6 +80,7 @@ export default function CalendarView({ events }: { events: CalendarEvent[] }) {
     }));
   }, [events]);
 
+  // GraphQL Mutations for CRUD operations
   const [createEvent] = useMutation(CREATE_EVENT, {
     refetchQueries: [{ query: GET_ME_QUERY }],
   });
