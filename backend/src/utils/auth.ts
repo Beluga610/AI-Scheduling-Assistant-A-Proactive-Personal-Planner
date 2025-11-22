@@ -1,18 +1,24 @@
 import jwt from "jsonwebtoken";
 const SECRET = process.env.JWT_SECRET || "mysecretkey123";
 
-// TODO: replace with proper auth flow
+/**
+ * Verifies the validity of a JWT token.
+ * Used by the Context middleware to secure API endpoints.
+ * * @param token - The raw Bearer token string.
+ * @returns The decoded token payload if valid, or null if verification fails.
+ */
 export function verifyToken(token: string | undefined) {
   if (!token) {
-    console.log("[Auth] verifyToken: No token provided."); // 日志1
+    console.log("[Auth] verifyToken: No token provided."); 
     return null;
   }
   try {
+    // Strip 'Bearer ' prefix if present to ensure standard JWT parsing
     const payload = jwt.verify(token.replace("Bearer ", ""), SECRET);
-    console.log("[Auth] verifyToken: Success! Payload:", payload); // 日志2
+    console.log("[Auth] verifyToken: Success! Payload:", payload); 
     return payload;
-  } catch (e) {
-    console.error("[Auth] verifyToken: FAILED!", e.message); // 日志3
+  } catch (e: any) {
+    console.error("[Auth] verifyToken: FAILED!", e.message); 
     return null;
   }
 }
