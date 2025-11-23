@@ -150,70 +150,53 @@ In console, run:
 demo.mp4 is provided showcasing our AI Scheduling Assistant, including its ability to plan based on multi-factors including existing calendar events, understanding user and dating contacts' preferences, and add multiple events on one command, etc. 
 
 ## Project Architecture
-Root/
+
+```text
+project5007/ (Project Root - Monorepo Entry Point)
 │
 ├── .env.example
 ├── .gitignore
 ├── docker-compose.yml (Defines MongoDB service)
 ├── package.json (Root dependencies)
-├── README.md (Project documentation)
-├── log/
-│   └── mongodb.log (MongoDB output logs)
+├── log/ (Database output)
 │
 ├── data/
-│   └── db/ (MongoDB data files)
+│   └── db/ (MongoDB Persistent Storage)
 │
-├─┬ backend/ (Node.js/TypeScript - Apollo Server)
+├─┬ backend/ (API Gateway, Logic, and AI Engine)
 │ │
 │ ├── package.json
 │ ├── tsconfig.json
 │ └── src/
-│     ├── agents/
-│     │   └── AIAgents.ts (Core LLM Logic, Tool Definition)
+│     ├─┬ agents/
+│     │ └── AIAgents.ts (Core LLM Logic, Prompt Engineering, Tool Interface)
 │     │
-│     ├── models/
-│     │   ├── CalendarEvent.ts (Mongoose Schema)
-│     │   ├── Task.ts
-│     │   └── User.ts (Includes Preferences Schema)
+│     ├─┬ models/
+│     │ ├── CalendarEvent.ts
+│     │ └── User.ts (Includes Preferences Schema)
 │     │
 │     ├── services/
-│     │   └── auth.ts (JWT handling)
+│     │   └── auth.ts (JWT & Hashing)
 │     │
 │     ├── utils/
-│     │   └── db.ts (MongoDB connection setup)
+│     │   └── db.ts (MongoDB Connection)
 │     │
-│     ├── db.ts (MongoDB connection setup, helper)
-│     ├── index.ts (Server Entry Point)
 │     ├── resolvers.ts (GraphQL Business Logic, Guardrail Execution)
 │     ├── schema.ts (GraphQL Type Definitions)
-│     └── types.ts (Shared TypeScript interfaces)
+│     └── index.ts (Apollo Server Setup)
 │
-└─┬ frontend-react/ (Vite/React Client)
+└─┬ frontend-react/ (Client Presentation Layer)
   │
   ├── package.json
-  ├── tsconfig.json
-  ├── vite.config.ts
-  ├── index.html
   └── src/
-      ├── components/
-      │   ├── AddEventModal.tsx
-      │   ├── AssistantPanel.css
-      │   ├── AssistantPanel.tsx (Chat UI)
-      │   ├── CalendarView.css
-      │   ├── CalendarView.tsx
-      │   ├── EditEventModal.tsx
-      │   ├── PreferencePanel.tsx (Preferences UI)
-      │   ├── Login.tsx
-      │   └── Navbar.tsx
+      ├─┬ components/
+      │ ├── AssistantPanel.tsx (Chat UI, History Management)
+      │ ├── CalendarView.tsx (Primary Display)
+      │ └── PreferencePanel.tsx (Preferences Input UI)
       │
-      ├── graphql/
-      │   ├── client.ts (Apollo Client setup)
-      │   └── queries.ts (GraphQL Queries/Mutations)
+      ├─┬ graphql/
+      │ ├── client.ts (Apollo Connection)
+      │ └── queries.ts (GQL Queries & Mutations)
       │
-      ├── pages/
-      │   ├── DashboardPage.tsx (Main authenticated view)
-      │   ├── HomePage.tsx
-      │   └── LoginPage.tsx
-      │
-      ├── App.css
-      └── App.tsx
+      └── pages/
+          └── DashboardPage.tsx (Data Fetching and Component Integration)
