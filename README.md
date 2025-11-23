@@ -152,7 +152,7 @@ demo.mp4 is provided showcasing our AI Scheduling Assistant, including its abili
 ## Project Architecture
 
 ```text
-project5007/ (Project Root - Monorepo Entry Point)
+Root/ (Project Root)
 │
 ├── .env.example
 ├── .gitignore
@@ -200,3 +200,4 @@ project5007/ (Project Root - Monorepo Entry Point)
       │
       └── pages/
           └── DashboardPage.tsx (Data Fetching and Component Integration)
+
