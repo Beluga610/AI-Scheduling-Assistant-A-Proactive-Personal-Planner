@@ -42,6 +42,19 @@ The frontend is built with React and Vite.
     - `graphql/queries.ts` — Apollo GraphQL Queries and Mutations
 
 ---
+## Project Documentation and General Aspects
+The problem addressed is the high cognitive load and friction involved in manual calendar scheduling, especially when balancing personal habits, social dynamics, and professional commitments. It trackes user's relationship and habits, acting as a personal assistant, being able to record user and user's contact's habits, it's convinence outweighs all the current calendars in the market. As digital schedules become more complex, this problem is predicted to remain highly relevant in the coming 10 years.
+
+## Solution Architecture 
+The solution employs a strict decoupled architecture:
+* **Frontend (Vite/React):** Handles UI/UX and GraphQL requests.
+* **Backend (Apollo/Node.js):** Serves the GraphQL API and handles business logic, authentication, and communication with third-party services (LLMs).
+* **Data Flow:** **Tool Use (ReAct) Pattern** is implemented for the AI assistant, allowing the AI to query calendar data before generating a response.
+  
+
+## Legal and Competition Analysis (Novelty)
+* **Legal Aspects:** The project utilizes several open-source libraries (`bcryptjs`, `jsonwebtoken`, Apollo Client).
+* **Competition:** We analyzed the nearest market competitors (e.g., Google Calendar, specialized dating apps). Our solution's novel integration of a custom LLM rule-engine offers a competitive advantage in personalized scheduling. It's convience and ability to consider multi-factors and plan the schedule for user was unique and novel in the current market.
 
 ##  Getting Started (Development Setup)
 
@@ -133,3 +146,74 @@ If JWS Secret token expired:
 In console, run:
 `localStorage.removeItem("token")`
 
+## A simple demo
+demo.mp4 is provided showcasing our AI Scheduling Assistant, including its ability to plan based on multi-factors including existing calendar events, understanding user and dating contacts' preferences, and add multiple events on one command, etc. 
+
+## Project Architecture
+Root/
+│
+├── .env.example
+├── .gitignore
+├── docker-compose.yml (Defines MongoDB service)
+├── package.json (Root dependencies)
+├── README.md (Project documentation)
+├── log/
+│   └── mongodb.log (MongoDB output logs)
+│
+├── data/
+│   └── db/ (MongoDB data files)
+│
+├─┬ backend/ (Node.js/TypeScript - Apollo Server)
+│ │
+│ ├── package.json
+│ ├── tsconfig.json
+│ └── src/
+│     ├── agents/
+│     │   └── AIAgents.ts (Core LLM Logic, Tool Definition)
+│     │
+│     ├── models/
+│     │   ├── CalendarEvent.ts (Mongoose Schema)
+│     │   ├── Task.ts
+│     │   └── User.ts (Includes Preferences Schema)
+│     │
+│     ├── services/
+│     │   └── auth.ts (JWT handling)
+│     │
+│     ├── utils/
+│     │   └── db.ts (MongoDB connection setup)
+│     │
+│     ├── db.ts (MongoDB connection setup, helper)
+│     ├── index.ts (Server Entry Point)
+│     ├── resolvers.ts (GraphQL Business Logic, Guardrail Execution)
+│     ├── schema.ts (GraphQL Type Definitions)
+│     └── types.ts (Shared TypeScript interfaces)
+│
+└─┬ frontend-react/ (Vite/React Client)
+  │
+  ├── package.json
+  ├── tsconfig.json
+  ├── vite.config.ts
+  ├── index.html
+  └── src/
+      ├── components/
+      │   ├── AddEventModal.tsx
+      │   ├── AssistantPanel.css
+      │   ├── AssistantPanel.tsx (Chat UI)
+      │   ├── CalendarView.css
+      │   ├── CalendarView.tsx
+      │   ├── EditEventModal.tsx
+      │   ├── PreferencePanel.tsx (Preferences UI)
+      │   ├── Login.tsx
+      │   └── Navbar.tsx
+      │
+      ├── graphql/
+      │   ├── client.ts (Apollo Client setup)
+      │   └── queries.ts (GraphQL Queries/Mutations)
+      │
+      ├── pages/
+      │   ├── DashboardPage.tsx (Main authenticated view)
+      │   ├── HomePage.tsx
+      │   └── LoginPage.tsx
+      │
+      ├── App.css
+      └── App.tsx
