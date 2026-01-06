@@ -1,6 +1,8 @@
 
 # 💫 AI Scheduling Assistant: Your Proactive Personal Planner
 
+**Originally developed as part of NUS IT5007 coursework, and extended as a personal project.**
+
 <img width="2540" height="1168" alt="image" src="https://github.com/user-attachments/assets/088fe438-d034-4f81-9774-489642e4f93a" />
 
 This project is an intelligent tool designed to eliminate the friction of planning and scheduling your week. This assistant goes beyond a simple calendar by offering true personalization and visualising your weekly activities!
